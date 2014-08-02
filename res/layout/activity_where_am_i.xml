@@ -1,0 +1,82 @@
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/ScrollView01"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent" 
+    android:background="@drawable/bgmap">
+	
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="800dp"
+    android:background="@drawable/bgmap"
+    android:fadingEdge="none"
+    android:gravity="top"
+    tools:context=".WhereAmI" >
+
+    <Button
+        android:id="@+id/btnWhereAmI"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="34dp"
+        android:onClick="sendMessage"
+        android:text="@string/where_am_i" />
+
+    <ImageView
+        android:id="@+id/imageView1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/txtLocation"
+        android:layout_toLeftOf="@+id/btnWhereAmI"
+        android:contentDescription="@string/iconImage"
+        android:src="@drawable/ic_launcher" />
+
+    <TextView
+        android:id="@+id/txtLocation"
+        android:layout_width="250dip"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/btnWhereAmI"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="44dp"
+        android:autoLink="web"
+        android:background="#FFFFFF"
+        android:scrollbars="vertical"
+        android:text="@string/my_nearest_google_landmark_location"
+        android:textStyle="bold" />
+
+    <CheckBox
+        android:id="@+id/chkUseGPSSatellite"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignRight="@+id/btnWhereAmI"
+        android:layout_below="@+id/btnWhereAmI"
+        android:checked="false"
+        android:onClick="UseGPSSatellites"
+        android:text="@string/Use_GPS_Satellites" />
+
+    <Button
+        android:id="@+id/btnSendSMS"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/btnSendMail"
+        android:layout_alignBottom="@+id/btnSendMail"
+        android:layout_alignLeft="@+id/btnWhereAmI"
+        android:layout_marginLeft="70dp"
+        android:onClick="sendSMS"
+        android:text="@string/send_location_by_sms" />
+
+    <Button
+        android:id="@+id/btnSendMail"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignRight="@+id/chkUseGPSSatellite"
+        android:layout_below="@+id/txtLocation"
+        android:layout_marginRight="64dp"
+        android:layout_marginTop="29dp"
+        android:onClick="sendMail"
+        android:text="@string/send_location_by_gmail" />
+
+</RelativeLayout>
+</ScrollView>
