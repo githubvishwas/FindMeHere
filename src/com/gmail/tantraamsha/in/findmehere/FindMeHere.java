@@ -17,6 +17,7 @@ import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Looper;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -54,7 +55,7 @@ public class FindMeHere extends Activity {
     protected void onStop() {
         super.onStop();
         if ( mLocationManager != null) {
-        	mLocationManager.removeUpdates(listener);
+        	mLocationManager.removeUpdates(mlistener);
         }
     }
 	@Override
@@ -68,7 +69,7 @@ public class FindMeHere extends Activity {
 		menu.add(Menu.NONE, MENU_ABOUT, Menu.NONE, "About");
 		return true;
 	}
-	@SuppressWarnings("deprecation")
+
 	@Override
     public boolean onOptionsItemSelected(MenuItem item)
     {
@@ -99,7 +100,7 @@ public class FindMeHere extends Activity {
             	alertDialog.setMessage(aboutDetail);
 	        
             	// Setting OK Button
-            	alertDialog.setButton("OK", new DialogInterface.OnClickListener() {
+            	alertDialog.setButton(1,"OK", new DialogInterface.OnClickListener() {
 	                public void onClick(DialogInterface dialog, int which) {
 	                // Write your code here to execute after dialog closed
 	                	//FindMeHere.this.finish() ;
@@ -140,9 +141,7 @@ public class FindMeHere extends Activity {
 	            (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 	    
 	    final boolean wirelessnetworkEnabled = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
-	    
-	    
-	    
+
 	    //final boolean gpsEnabled = false ;
 	    final boolean internetOn = haveNetworkConnection();
 	    if (!wirelessnetworkEnabled && !internetOn ) {
@@ -158,7 +157,7 @@ public class FindMeHere extends Activity {
 	        alertDialog.setMessage("Please enable GPS (at least wireless network) before running this App. Your internet connection is also not on, this will give you only your longitude and latitude of last known location. To get proper updated address, switch on your internet.");
 	        
 	        // Setting OK Button
-	        alertDialog.setButton("OK", new DialogInterface.OnClickListener() {
+	        alertDialog.setButton(1,"OK", new DialogInterface.OnClickListener() {
 	                public void onClick(DialogInterface dialog, int which) {
 	                // Write your code here to execute after dialog closed
 	                	FindMeHere.this.finish() ;
@@ -178,7 +177,7 @@ public class FindMeHere extends Activity {
 	        alertDialog.setMessage("Your internet connection is not on, this will give you only your longitude and latitude. To get the address, switch on your internet.");
 	        
 	        // Setting OK Button
-	        alertDialog.setButton("OK", new DialogInterface.OnClickListener() {
+	        alertDialog.setButton(1,"OK", new DialogInterface.OnClickListener() {
 	                public void onClick(DialogInterface dialog, int which) {
 	                // Write your code here to execute after dialog closed
 	                	//FindMeHere.this.finish() ;
@@ -196,7 +195,7 @@ public class FindMeHere extends Activity {
 	        alertDialog.setMessage("Please enable GPS (at least wireless network) before running this App");
 	        
 	        // Setting OK Button
-	        alertDialog.setButton("OK", new DialogInterface.OnClickListener() {
+	        alertDialog.setButton(1,"OK", new DialogInterface.OnClickListener() {
 	                public void onClick(DialogInterface dialog, int which) {
 	                // Write your code here to execute after dialog closed
 	                	FindMeHere.this.finish() ;
@@ -235,7 +234,7 @@ public class FindMeHere extends Activity {
 		        alertDialog.setMessage("Please enable GPS using satellite to use this");
 		        
 		        // Setting OK Button
-		        alertDialog.setButton("OK", new DialogInterface.OnClickListener() {
+		        alertDialog.setButton(1,"OK", new DialogInterface.OnClickListener() {
 		                public void onClick(DialogInterface dialog, int which) {
 		                // Write your code here to execute after dialog closed
 		                	CheckBox cb1 =  (CheckBox) findViewById(R.id.chkUseGPSSatellite);
@@ -283,14 +282,16 @@ public class FindMeHere extends Activity {
 	private Location requestUpdatesFromProvider(final String provider, final int errorResId) {
         Location location = null;
         if (mLocationManager.isProviderEnabled(provider)) {
-            mLocationManager.requestLocationUpdates(provider, 10, 10, listener);
+            //mLocationManager.requestLocationUpdates(provider, 10, 10, mlistener);
+        	Looper looper = null;
+        	mLocationManager.requestSingleUpdate(provider, mlistener, looper);
             location = mLocationManager.getLastKnownLocation(provider);
         } else {
             Toast.makeText(this, errorResId, Toast.LENGTH_LONG).show();
         }
         return location;
     }
-	private final LocationListener listener = new LocationListener() {
+	private final LocationListener mlistener = new LocationListener() {
 
 	    @Override
 	    public void onLocationChanged(Location location) {

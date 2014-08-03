@@ -8,6 +8,6 @@
     <string name="send_location_by_gmail">Send location \nby mail</string>
     <string name="my_nearest_google_landmark_location">Click on &lt;Find Me Here&gt; button to get location</string>
     <string name="iconImage">Icon Image</string>
-    <string name="Use_GPS_Satellites">Use GPS Satellites</string>
+    <string name="Use_GPS_Satellites">Use GPS Provider</string>
 
 </resources>
