@@ -31,6 +31,7 @@ import android.view.View;
 import android.widget.CheckBox;
 import android.widget.TextView;
 import android.widget.Toast;
+import com.gmail.tantraamsha.in.findmehere.R;
 
 @SuppressLint("ResourceAsColor")
 public class WhereAmI extends Activity {
