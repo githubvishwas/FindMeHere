@@ -1,4 +1,4 @@
-package com.gmail.tantraamsha.in.whereami;
+package com.gmail.tantraamsha.in.findmehere;
 
 import java.io.IOException;
 import java.util.List;
@@ -24,6 +24,8 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager.NameNotFoundException;
 import android.text.method.LinkMovementMethod;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -34,7 +36,7 @@ import android.widget.Toast;
 import com.gmail.tantraamsha.in.findmehere.R;
 
 @SuppressLint("ResourceAsColor")
-public class WhereAmI extends Activity {
+public class FindMeHere extends Activity {
 	public static final int MENU_LOCATION = Menu.FIRST;
 	public static final int MENU_INTERNET = Menu.FIRST + 1;
 	public static final int MENU_ABOUT = Menu.FIRST + 2;
@@ -45,9 +47,8 @@ public class WhereAmI extends Activity {
 	private Geocoder mGeocoder;
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.activity_where_am_i);
-		
-		mGeocoder = new Geocoder(WhereAmI.this, Locale.ENGLISH);
+		setContentView(R.layout.activity_find_me_here);
+		mGeocoder = new Geocoder(FindMeHere.this, Locale.ENGLISH);
 	}
     @Override
     protected void onStop() {
@@ -59,14 +60,15 @@ public class WhereAmI extends Activity {
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.
-		getMenuInflater().inflate(R.menu.activity_where_am_i, menu);
+		getMenuInflater().inflate(R.menu.activity_find_me_here, menu);
 		menu.clear();
 		menu.add(Menu.NONE, MENU_LOCATION, Menu.NONE, "Location");
 		// There is some issue in bringing up mobile network options now
-		//menu.add(Menu.NONE, MENU_INTERNET, Menu.NONE, "Internet");
+		menu.add(Menu.NONE, MENU_INTERNET, Menu.NONE, "Internet");
 		menu.add(Menu.NONE, MENU_ABOUT, Menu.NONE, "About");
 		return true;
 	}
+	@SuppressWarnings("deprecation")
 	@Override
     public boolean onOptionsItemSelected(MenuItem item)
     {
@@ -75,23 +77,32 @@ public class WhereAmI extends Activity {
             case MENU_LOCATION:
             	startActivityForResult(new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS), 0);
             return true;
-        case MENU_INTERNET:
-        	startActivityForResult(new Intent(android.provider.Settings.ACTION_NETWORK_OPERATOR_SETTINGS ), 0);
-            return true;
-        case MENU_ABOUT:
-        	AlertDialog alertDialog = new AlertDialog.Builder(
-	    			WhereAmI.this).create();
-	    	// Setting Dialog Title
-	        alertDialog.setTitle("About");
+            case MENU_INTERNET:
+            	startActivityForResult(new Intent(android.provider.Settings.ACTION_SETTINGS ), 0);
+            	return true;
+            case MENU_ABOUT:
+				PackageInfo pInfo = null;
+				try {
+					pInfo = getPackageManager().getPackageInfo(getPackageName(), 0);
+				} catch (NameNotFoundException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+            	String version = pInfo.versionName;
+            	AlertDialog alertDialog = new AlertDialog.Builder(
+	    			FindMeHere.this).create();
+            	// Setting Dialog Title
+            	alertDialog.setTitle("About");
+            	
+            	// Setting Dialog Message
+            	String aboutDetail = String.format("Find Me Here \n%s", version);
+            	alertDialog.setMessage(aboutDetail);
 	        
-	     // Setting Dialog Message
-	        alertDialog.setMessage("Where Am I \nVersion 1.0 \nDeveloped by Vishwas");
-	        
-	        // Setting OK Button
-	        alertDialog.setButton("OK", new DialogInterface.OnClickListener() {
+            	// Setting OK Button
+            	alertDialog.setButton("OK", new DialogInterface.OnClickListener() {
 	                public void onClick(DialogInterface dialog, int which) {
 	                // Write your code here to execute after dialog closed
-	                	//WhereAmI.this.finish() ;
+	                	//FindMeHere.this.finish() ;
 	                }
 	        });
 	        alertDialog.show();
@@ -139,7 +150,7 @@ public class WhereAmI extends Activity {
 	        // the location services, then when the user clicks the "OK" button,
 	        // call enableLocationSettings()
 	    	AlertDialog alertDialog = new AlertDialog.Builder(
-	    			WhereAmI.this).create();
+	    			FindMeHere.this).create();
 	    	// Setting Dialog Title
 	        alertDialog.setTitle("Internet and GPS not enabled alert");
 	        
@@ -150,7 +161,7 @@ public class WhereAmI extends Activity {
 	        alertDialog.setButton("OK", new DialogInterface.OnClickListener() {
 	                public void onClick(DialogInterface dialog, int which) {
 	                // Write your code here to execute after dialog closed
-	                	WhereAmI.this.finish() ;
+	                	FindMeHere.this.finish() ;
 	                }
 	        });
 	        
@@ -159,7 +170,7 @@ public class WhereAmI extends Activity {
 	        alertDialog.show();
 	    } else if (!internetOn) {
 	    	AlertDialog alertDialog = new AlertDialog.Builder(
-	    			WhereAmI.this).create();
+	    			FindMeHere.this).create();
 	    	// Setting Dialog Title
 	        alertDialog.setTitle("Internet not enabled alert");
 	        
@@ -170,14 +181,14 @@ public class WhereAmI extends Activity {
 	        alertDialog.setButton("OK", new DialogInterface.OnClickListener() {
 	                public void onClick(DialogInterface dialog, int which) {
 	                // Write your code here to execute after dialog closed
-	                	//WhereAmI.this.finish() ;
+	                	//FindMeHere.this.finish() ;
 	                }
 	        });
 	        // Showing Alert Message
 	        alertDialog.show();
 	    }else if (!wirelessnetworkEnabled ) {
 	    	AlertDialog alertDialog = new AlertDialog.Builder(
-	    			WhereAmI.this).create();
+	    			FindMeHere.this).create();
 	    	// Setting Dialog Title
 	        alertDialog.setTitle("GPS not enabled alert");
 	        
@@ -188,7 +199,7 @@ public class WhereAmI extends Activity {
 	        alertDialog.setButton("OK", new DialogInterface.OnClickListener() {
 	                public void onClick(DialogInterface dialog, int which) {
 	                // Write your code here to execute after dialog closed
-	                	WhereAmI.this.finish() ;
+	                	FindMeHere.this.finish() ;
 	                }
 	        });
 	        // Showing Alert Message
@@ -216,7 +227,7 @@ public class WhereAmI extends Activity {
 		    final boolean gpsEnabled = mLocationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
 		    if (!gpsEnabled) {
 		    	AlertDialog alertDialog = new AlertDialog.Builder(
-		    			WhereAmI.this).create();
+		    			FindMeHere.this).create();
 		    	// Setting Dialog Title
 		        alertDialog.setTitle("GPS using satellite not enabled alert");
 		        
@@ -244,14 +255,14 @@ public class WhereAmI extends Activity {
 	}
 	public void sendMail(View view) {
 		if (!foundLoc) {
-			Toast.makeText(this, "Please click on Where Am I button before sending mail.", Toast.LENGTH_LONG).show();
+			Toast.makeText(this, "Please click on Find Me Here button before sending mail.", Toast.LENGTH_LONG).show();
 		}
 		Intent intent=new Intent(Intent.ACTION_SEND);
 		//String[] recipients={"xyz@gmail.com"};
 		//intent.putExtra(Intent.EXTRA_EMAIL, recipients);
-		intent.putExtra(Intent.EXTRA_SUBJECT,"My location from Where Am I App");
+		intent.putExtra(Intent.EXTRA_SUBJECT,"My location from Find Me Here App");
 		TextView tv =  (TextView) findViewById(R.id.txtLocation);
-		intent.putExtra(Intent.EXTRA_TEXT,String.format("%s\n\nI found this by using the \"Where Am I\" App from Play Store!!",tv.getText()));
+		intent.putExtra(Intent.EXTRA_TEXT,String.format("%s\n\nI found this by using the \"Find Me Here\" App from Play Store!!",tv.getText()));
 		//intent.putExtra(Intent.EXTRA_CC,"ghi");
 		//intent.setType("text/html");
 		// this will ensure that directly g mail opens and other options dont show up - vishwas
@@ -260,12 +271,12 @@ public class WhereAmI extends Activity {
 	}
 	public void sendSMS(View view) {
 		if (!foundLoc) {
-			Toast.makeText(this, "Please click on Where Am I button before sending sms.", Toast.LENGTH_LONG).show();
+			Toast.makeText(this, "Please click on Find Me Here button before sending sms.", Toast.LENGTH_LONG).show();
 		}
 		Uri smsUri = Uri.parse("tel:123456");
 		Intent intent = new Intent(Intent.ACTION_VIEW, smsUri);
 		TextView tv =  (TextView) findViewById(R.id.txtLocation);
-		intent.putExtra("sms_body", String.format("%s\n\nI found this using the \"Where Am I\" App , which can be downloaded from playstore!",tv.getText()));
+		intent.putExtra("sms_body", String.format("%s\n\nI found this using the \"Find Me Here\" App , which can be downloaded from playstore!",tv.getText()));
 		intent.setType("vnd.android-dir/mms-sms"); 
 		startActivity(intent);
 	}
@@ -473,7 +484,7 @@ public class WhereAmI extends Activity {
 		@Override
 	    protected void onPreExecute() {
 	        super.onPreExecute();
-	        mProgressDialog = new ProgressDialog(WhereAmI.this);
+	        mProgressDialog = new ProgressDialog(FindMeHere.this);
 			mProgressDialog.setMessage("Fetching location ..");
 			mProgressDialog.setIndeterminate(true);
 			mProgressDialog.setCancelable(false);
