@@ -100,7 +100,7 @@ public class FindMeHere extends Activity {
             	alertDialog.setMessage(aboutDetail);
 	        
             	// Setting OK Button
-            	alertDialog.setButton(1,"OK", new DialogInterface.OnClickListener() {
+            	alertDialog.setButton("OK", new DialogInterface.OnClickListener() {
 	                public void onClick(DialogInterface dialog, int which) {
 	                // Write your code here to execute after dialog closed
 	                	//FindMeHere.this.finish() ;
@@ -157,7 +157,7 @@ public class FindMeHere extends Activity {
 	        alertDialog.setMessage("Please enable GPS (at least wireless network) before running this App. Your internet connection is also not on, this will give you only your longitude and latitude of last known location. To get proper updated address, switch on your internet.");
 	        
 	        // Setting OK Button
-	        alertDialog.setButton(1,"OK", new DialogInterface.OnClickListener() {
+	        alertDialog.setButton("OK", new DialogInterface.OnClickListener() {
 	                public void onClick(DialogInterface dialog, int which) {
 	                // Write your code here to execute after dialog closed
 	                	FindMeHere.this.finish() ;
@@ -177,7 +177,7 @@ public class FindMeHere extends Activity {
 	        alertDialog.setMessage("Your internet connection is not on, this will give you only your longitude and latitude. To get the address, switch on your internet.");
 	        
 	        // Setting OK Button
-	        alertDialog.setButton(1,"OK", new DialogInterface.OnClickListener() {
+	        alertDialog.setButton("OK", new DialogInterface.OnClickListener() {
 	                public void onClick(DialogInterface dialog, int which) {
 	                // Write your code here to execute after dialog closed
 	                	//FindMeHere.this.finish() ;
@@ -195,7 +195,7 @@ public class FindMeHere extends Activity {
 	        alertDialog.setMessage("Please enable GPS (at least wireless network) before running this App");
 	        
 	        // Setting OK Button
-	        alertDialog.setButton(1,"OK", new DialogInterface.OnClickListener() {
+	        alertDialog.setButton("OK", new DialogInterface.OnClickListener() {
 	                public void onClick(DialogInterface dialog, int which) {
 	                // Write your code here to execute after dialog closed
 	                	FindMeHere.this.finish() ;
@@ -234,7 +234,7 @@ public class FindMeHere extends Activity {
 		        alertDialog.setMessage("Please enable GPS using satellite to use this");
 		        
 		        // Setting OK Button
-		        alertDialog.setButton(1,"OK", new DialogInterface.OnClickListener() {
+		        alertDialog.setButton("OK", new DialogInterface.OnClickListener() {
 		                public void onClick(DialogInterface dialog, int which) {
 		                // Write your code here to execute after dialog closed
 		                	CheckBox cb1 =  (CheckBox) findViewById(R.id.chkUseGPSSatellite);
