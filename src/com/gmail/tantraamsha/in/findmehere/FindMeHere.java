@@ -261,7 +261,7 @@ public class FindMeHere extends Activity {
 		//intent.putExtra(Intent.EXTRA_EMAIL, recipients);
 		intent.putExtra(Intent.EXTRA_SUBJECT,"My location from Find Me Here App");
 		TextView tv =  (TextView) findViewById(R.id.txtLocation);
-		intent.putExtra(Intent.EXTRA_TEXT,String.format("%s\n\nI found this by using the \"Find Me Here\" App from Play Store!!",tv.getText()));
+		intent.putExtra(Intent.EXTRA_TEXT,String.format("%s\n\nFound location using \"Find Me Here\" App from Play Store at https://play.google.com/store/apps/details?id=com.gmail.tantraamsha.in.findmehere",tv.getText()));
 		//intent.putExtra(Intent.EXTRA_CC,"ghi");
 		//intent.setType("text/html");
 		// this will ensure that directly g mail opens and other options dont show up - vishwas
@@ -275,7 +275,7 @@ public class FindMeHere extends Activity {
 		Uri smsUri = Uri.parse("tel:123456");
 		Intent intent = new Intent(Intent.ACTION_VIEW, smsUri);
 		TextView tv =  (TextView) findViewById(R.id.txtLocation);
-		intent.putExtra("sms_body", String.format("%s\n\nI found this using the \"Find Me Here\" App , which can be downloaded from playstore!",tv.getText()));
+		intent.putExtra("sms_body", String.format("%s\n\nFound location using \"Find Me Here\" App from Play Store at https://play.google.com/store/apps/details?id=com.gmail.tantraamsha.in.findmehere",tv.getText()));
 		intent.setType("vnd.android-dir/mms-sms"); 
 		startActivity(intent);
 	}
@@ -366,14 +366,21 @@ public class FindMeHere extends Activity {
         	tv.setText(String.format("Could not resolve location. Providing last known location \nLongitude: %s\nLatitude: %s\nFind me on google map using the following link \n%s \nSorry, check internet/GPS connection ! \n There may be a temporary loss of connection, please try again",longitude,latitude,googleMapURL));
             e.printStackTrace();
         }
-		
-		if (addresses == null) {
+		StringBuilder sb = new StringBuilder();
+		if (addresses.size() == 0) {
 			//tv.setText(String.format("Latitude: %s \nLongitude: %s \nSorry, Could not resolve address !",Double.toString(latitude),Double.toString(longitude)));
 		} else {
-			String address = addresses.get(0).getAddressLine(0);
-			String city = addresses.get(0).getAddressLine(1);
-			String country = addresses.get(0).getAddressLine(2);
-			tv.setText(String.format("My Nearest Landmark: \n%s \n%s \n%s \nGoogle map location link \n%s ", address, city, country,googleMapURL ));
+			//String address = addresses.get(0).getAddressLine(0);
+			//String city = addresses.get(0).getAddressLine(1);
+			//String country = addresses.get(0).getAddressLine(2);
+			//tv.setText(String.format("My Nearest Landmark: \n%s \n%s \n%s \nGoogle map location link \n%s ", address, city, country,googleMapURL ));
+			Address address = addresses.get(0);
+			for (int i =0; i < address.getMaxAddressLineIndex(); i++)
+				sb.append(address.getAddressLine(1)).append("\n");
+			sb.append(address.getLocality()).append("\n");
+			sb.append(address.getPostalCode()).append("\n");
+			sb.append(address.getCountryName()).append("\n");
+			tv.setText(String.format(" ? My Nearest Landmark:\n" + sb.toString() + "Google map location link \n" + googleMapURL ));
 		}
 	}	
 	public void Settings_cb(View view) {
@@ -469,14 +476,21 @@ public class FindMeHere extends Activity {
 	        	publishProgress(100);
 	            e.printStackTrace();
 	        }
-			
+			StringBuilder sb = new StringBuilder();
 			if (addresses == null) {
 				//tv.setText(String.format("Latitude: %s \nLongitude: %s \nSorry, Could not resolve address !",Double.toString(latitude),Double.toString(longitude)));
 			} else {
-				String address = addresses.get(0).getAddressLine(0);
-				String city = addresses.get(0).getAddressLine(1);
-				String country = addresses.get(0).getAddressLine(2);
-				mText = String.format("Nearest Landmark:\n%s \n%s \n%s \nGoogle map location link \n%s ", address, city, country,googleMapURL );
+				//String address = addresses.get(0).getAddressLine(0);
+				//String city = addresses.get(0).getAddressLine(1);
+				//String country = addresses.get(0).getAddressLine(2);
+				//mText = String.format("Nearest Landmark:\n%s \n%s \n%s \nGoogle map location link \n%s ", address, city, country,googleMapURL );
+				Address address = addresses.get(0);
+				for (int i =0; i < address.getMaxAddressLineIndex(); i++)
+					sb.append(address.getAddressLine(i)).append("\n");
+				//sb.append(address.getLocality()).append("\n");
+				//sb.append(address.getPostalCode()).append("\n");
+				sb.append(address.getCountryName()).append("\n");
+				mText = String.format("Nearest Landmark:\n" + sb.toString() + "Google map location link \n" + googleMapURL );
 				publishProgress(100);
 				//tv.setText(String.format("Nearest Google Landmark Address: %s \n%s \n%s \nFind me on google map using the following link \n%s ", address, city, country,googleMapURL ));
 			}

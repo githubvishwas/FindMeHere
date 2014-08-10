@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<appwidget-provider 
+  xmlns:android="http://schemas.android.com/apk/res/android"
+  android:initialLayout="@layout/activity_find_me_here"  
+  android:minWidth="110dp"
+  android:minHeight="110dp"
+  android:label="@string/widget_label"
+  android:updatePeriodMillis="36000000"
+/>

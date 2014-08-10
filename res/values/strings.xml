@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
     <string name="app_name">Find Me Here!</string>
     <string name="menu_settings">Settings</string>
     <string name="find_me_here">Find Me Here</string>
@@ -9,5 +8,5 @@
     <string name="my_nearest_google_landmark_location">Click on &lt;Find Me Here&gt; button to get location</string>
     <string name="iconImage">Icon Image</string>
     <string name="Use_GPS_Satellites">Use GPS Provider</string>
-
+    <string name="widget_label">Find Me Here</string>
 </resources>
