@@ -25,7 +25,9 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.text.method.LinkMovementMethod;
 import android.view.Menu;
@@ -128,7 +130,7 @@ public class FindMeHere extends Activity {
 	    }
 	    return haveConnectedWifi || haveConnectedMobile;
 	}
-
+	
 	@Override
 	protected void onStart() {
 		super.onStart();
@@ -137,14 +139,15 @@ public class FindMeHere extends Activity {
 	    // this method when the user returns to the activity, which ensures the desired
 	    // location provider is enabled each time the activity resumes from the stopped state.
 		
-	    LocationManager locationManager =
+		mLocationManager =
 	            (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 	    
-	    final boolean wirelessnetworkEnabled = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
-
+	    final boolean wirelessnetworkEnabled = mLocationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+	    final boolean gpsEnabled = mLocationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+	    
 	    //final boolean gpsEnabled = false ;
 	    final boolean internetOn = haveNetworkConnection();
-	    if (!wirelessnetworkEnabled && !internetOn ) {
+	    if (!wirelessnetworkEnabled && !internetOn && !gpsEnabled) {
 	        // Build an alert dialog here that requests that the user enable
 	        // the location services, then when the user clicks the "OK" button,
 	        // call enableLocationSettings()
@@ -154,8 +157,9 @@ public class FindMeHere extends Activity {
 	        alertDialog.setTitle("Internet and GPS not enabled alert");
 	        
 	     // Setting Dialog Message
-	        alertDialog.setMessage("Please enable GPS (at least wireless network) before running this App. Your internet connection is also not on, this will give you only your longitude and latitude of last known location. To get proper updated address, switch on your internet.");
-	        
+	        alertDialog.setMessage("Please enable GPS before running this App. Your internet connection is also not on, this will give you only your longitude and latitude of last known location. To get proper updated address, switch on your internet.");
+	        alertDialog.setCancelable(false);
+	        alertDialog.setCanceledOnTouchOutside(false);
 	        // Setting OK Button
 	        alertDialog.setButton("OK", new DialogInterface.OnClickListener() {
 	                public void onClick(DialogInterface dialog, int which) {
@@ -167,7 +171,28 @@ public class FindMeHere extends Activity {
 
 	        // Showing Alert Message
 	        alertDialog.show();
-	    } else if (!internetOn) {
+	    } 
+	    if (!wirelessnetworkEnabled && !gpsEnabled) {
+	    	AlertDialog alertDialog = new AlertDialog.Builder(
+	    			FindMeHere.this).create();
+	    	// Setting Dialog Title
+	        alertDialog.setTitle("GPS not enabled alert");
+	        
+	     // Setting Dialog Message
+	        alertDialog.setMessage("Please enable GPS before running this App");
+	        alertDialog.setCancelable(false);
+	        alertDialog.setCanceledOnTouchOutside(false);
+	        // Setting OK Button
+	        alertDialog.setButton("OK", new DialogInterface.OnClickListener() {
+	                public void onClick(DialogInterface dialog, int which) {
+	                // Write your code here to execute after dialog closed
+	                	FindMeHere.this.finish() ;
+	                }
+	        });
+	        // Showing Alert Message
+	        alertDialog.show();
+	    } 
+	    if (!internetOn) {
 	    	AlertDialog alertDialog = new AlertDialog.Builder(
 	    			FindMeHere.this).create();
 	    	// Setting Dialog Title
@@ -185,32 +210,16 @@ public class FindMeHere extends Activity {
 	        });
 	        // Showing Alert Message
 	        alertDialog.show();
-	    }else if (!wirelessnetworkEnabled ) {
-	    	AlertDialog alertDialog = new AlertDialog.Builder(
-	    			FindMeHere.this).create();
-	    	// Setting Dialog Title
-	        alertDialog.setTitle("GPS not enabled alert");
-	        
-	     // Setting Dialog Message
-	        alertDialog.setMessage("Please enable GPS (at least wireless network) before running this App");
-	        
-	        // Setting OK Button
-	        alertDialog.setButton("OK", new DialogInterface.OnClickListener() {
-	                public void onClick(DialogInterface dialog, int which) {
-	                // Write your code here to execute after dialog closed
-	                	FindMeHere.this.finish() ;
-	                }
-	        });
-	        // Showing Alert Message
-	        alertDialog.show();
-	    }
-	    //TextView tv =  (TextView) findViewById(R.id.txtLocation);
-	    //tv.setBackgroundColor(R.color.white);
-	    if (wirelessnetworkEnabled ) {
-	    	mLocationManager = locationManager;
-		    requestUpdatesFromProvider(LocationManager.NETWORK_PROVIDER, -1);
 	    }
 	    
+	    if (!wirelessnetworkEnabled) {
+	    	CheckBox cb =  (CheckBox) findViewById(R.id.chkUseGPSSatellite);
+	    	cb.setChecked(true);
+	    	Toast.makeText(this, "GPS Satellite may give old or no location if proper sky view is not available.", Toast.LENGTH_LONG).show();
+	    	//requestUpdatesFromProvider(LocationManager.GPS_PROVIDER, -1);
+	    } else {
+	    	requestUpdatesFromProvider(LocationManager.NETWORK_PROVIDER, -1);
+	    }	    
 	}
 	//private void enableLocationSettings() {
 	//    Intent settingsIntent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
@@ -248,13 +257,63 @@ public class FindMeHere extends Activity {
 			    requestUpdatesFromProvider(LocationManager.GPS_PROVIDER, -1);
 		    }
 		} else {
-			requestUpdatesFromProvider(LocationManager.NETWORK_PROVIDER, -1);
-		}
+			final boolean gpsEnabled = mLocationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+		    if (!gpsEnabled) {
+		    	AlertDialog alertDialog = new AlertDialog.Builder(
+		    			FindMeHere.this).create();
+		    	// Setting Dialog Title
+		        alertDialog.setTitle("GPS using network not enabled alert");
+		        
+		     // Setting Dialog Message
+		        alertDialog.setMessage("Please enable GPS using network to use this");
+		        
+		        // Setting OK Button
+		        alertDialog.setButton("OK", new DialogInterface.OnClickListener() {
+		                public void onClick(DialogInterface dialog, int which) {
+		                // Write your code here to execute after dialog closed
+		                	CheckBox cb1 =  (CheckBox) findViewById(R.id.chkUseGPSSatellite);
+		                	cb1.setChecked(true);
+		                }
+		        });
+		        // Showing Alert Message
+		        alertDialog.show();
+		    } else {	    
+		    	requestUpdatesFromProvider(LocationManager.NETWORK_PROVIDER, -1);
+			}
+		    }
+			
 		
+	}
+	public void SendWhatsApp(View view) {
+		try{
+		    ApplicationInfo info = getPackageManager().
+		            getApplicationInfo("com.whatsapp", 0 );
+		} catch( PackageManager.NameNotFoundException e ){
+			Toast.makeText(this, "WhatsApp not Installed", Toast.LENGTH_SHORT)
+            .show();
+		    return;
+		}
+		if (!foundLoc) {
+			Toast.makeText(this, "Please click on Find Me Here button before sending mail.", Toast.LENGTH_LONG).show();
+			return;
+		}
+		Intent waIntent = new Intent(Intent.ACTION_SEND);
+	    waIntent.setType("text/plain");
+	    TextView tv =  (TextView) findViewById(R.id.txtLocation);
+	    String text = String.format("%s\n\nFound location using \"Find Me Here\" App from Play Store at https://play.google.com/store/apps/details?id=com.gmail.tantraamsha.in.findmehere",tv.getText());
+	    waIntent.setPackage("com.whatsapp");
+	    if (waIntent != null) {
+	        waIntent.putExtra(Intent.EXTRA_TEXT, text);//
+	        startActivity(Intent.createChooser(waIntent, "Share with"));
+	    } else {
+	        Toast.makeText(this, "WhatsApp not Installed", Toast.LENGTH_SHORT)
+	                .show();
+	    }
 	}
 	public void sendMail(View view) {
 		if (!foundLoc) {
 			Toast.makeText(this, "Please click on Find Me Here button before sending mail.", Toast.LENGTH_LONG).show();
+			return;
 		}
 		Intent intent=new Intent(Intent.ACTION_SEND);
 		//String[] recipients={"xyz@gmail.com"};
@@ -271,6 +330,7 @@ public class FindMeHere extends Activity {
 	public void sendSMS(View view) {
 		if (!foundLoc) {
 			Toast.makeText(this, "Please click on Find Me Here button before sending sms.", Toast.LENGTH_LONG).show();
+			return;
 		}
 		Uri smsUri = Uri.parse("tel:123456");
 		Intent intent = new Intent(Intent.ACTION_VIEW, smsUri);

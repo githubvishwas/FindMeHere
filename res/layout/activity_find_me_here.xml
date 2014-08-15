@@ -78,5 +78,15 @@
         android:onClick="sendMail"
         android:text="@string/send_location_by_gmail" />
 
+	 <Button
+	     android:id="@+id/btnSendWhatsApp"
+	     android:layout_width="wrap_content"
+	     android:layout_height="wrap_content"
+	     android:layout_alignLeft="@+id/btnFindMeHere"
+	     android:layout_below="@+id/btnSendSMS"
+	     android:layout_marginTop="16dp"
+	     android:onClick="SendWhatsApp"
+	     android:text="@string/send_location_by_whatsapp" />
+
 </RelativeLayout>
 </ScrollView>
