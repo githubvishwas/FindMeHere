@@ -1,5 +1,5 @@
 package com.gmail.tantraamsha.in.findmehere;
-
+import com.google.android.gms.ads.*;
 import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
@@ -46,12 +46,18 @@ public class FindMeHere extends Activity {
 	private LocationManager mLocationManager;
 	private Boolean foundLoc = false; 
 	private Boolean mIsGPS;
-
+	private InterstitialAd interstitial;
 	private Geocoder mGeocoder;
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_find_me_here);
 		mGeocoder = new Geocoder(FindMeHere.this, Locale.ENGLISH);
+		
+		// Create the interstitial.
+	    interstitial = new InterstitialAd(this);
+	    interstitial.setAdUnitId("ca-app-pub-9439183503098916/3226250380");
+
+	    
 	}
     @Override
     protected void onStop() {
@@ -305,6 +311,11 @@ public class FindMeHere extends Activity {
 	    if (waIntent != null) {
 	        waIntent.putExtra(Intent.EXTRA_TEXT, text);//
 	        startActivity(Intent.createChooser(waIntent, "Share with"));
+			// Create ad request.
+		    AdRequest adRequest = new AdRequest.Builder().build();
+
+		    // Begin loading your interstitial.
+		    interstitial.loadAd(adRequest);
 	    } else {
 	        Toast.makeText(this, "WhatsApp not Installed", Toast.LENGTH_SHORT)
 	                .show();
@@ -326,6 +337,11 @@ public class FindMeHere extends Activity {
 		// this will ensure that directly g mail opens and other options dont show up - vishwas
 		intent.setType("message/rfc822");
 		startActivity(Intent.createChooser(intent, "Send mail")); 
+		// Create ad request.
+	    AdRequest adRequest = new AdRequest.Builder().build();
+
+	    // Begin loading your interstitial.
+	    interstitial.loadAd(adRequest);
 	}
 	public void sendSMS(View view) {
 		if (!foundLoc) {
@@ -338,6 +354,11 @@ public class FindMeHere extends Activity {
 		intent.putExtra("sms_body", String.format("%s\n\nFound location using \"Find Me Here\" App from Play Store at https://play.google.com/store/apps/details?id=com.gmail.tantraamsha.in.findmehere",tv.getText()));
 		intent.setType("vnd.android-dir/mms-sms"); 
 		startActivity(intent);
+		// Create ad request.
+	    AdRequest adRequest = new AdRequest.Builder().build();
+
+	    // Begin loading your interstitial.
+	    interstitial.loadAd(adRequest);
 	}
 	private Location requestUpdatesFromProvider(final String provider, final int errorResId) {
         Location location = null;
@@ -446,7 +467,7 @@ public class FindMeHere extends Activity {
 	public void Settings_cb(View view) {
 		//Toast.makeText(this, "This is a very simple app and has no complex settings, so enjoy !! \nVishwas", Toast.LENGTH_LONG).show();
 	}
-	public void sendMessage(View view)  {
+	public void findMeHere_cb(View view)  {
 		//final boolean internetOn = haveNetworkConnection();
 		foundLoc = true;
 		final boolean gpsEnabled = mLocationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
@@ -474,7 +495,7 @@ public class FindMeHere extends Activity {
 			getLocation.mGeocoder = new Geocoder(this, Locale.ENGLISH);
 			getLocation.execute("");
 		} 
-		
+
 	}
 	private class GetLocation extends AsyncTask<String, Integer, String> {
 		
