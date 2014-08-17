@@ -9,6 +9,7 @@ import com.google.android.gms.ads.*;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesClient;
 import com.google.android.gms.location.LocationClient;
+import com.google.android.gms.location.LocationRequest;
 
 import android.location.Address;
 import android.location.Geocoder;
@@ -45,7 +46,8 @@ import com.gmail.tantraamsha.in.findmehere.R;
 @SuppressLint("ResourceAsColor")
 public class FindMeHere extends FragmentActivity implements
 GooglePlayServicesClient.ConnectionCallbacks,
-GooglePlayServicesClient.OnConnectionFailedListener {
+GooglePlayServicesClient.OnConnectionFailedListener,
+com.google.android.gms.location.LocationListener {
 	public static final int MENU_LOCATION = Menu.FIRST;
 	public static final int MENU_INTERNET = Menu.FIRST + 1;
 	public static final int MENU_ABOUT = Menu.FIRST + 2;
@@ -56,16 +58,29 @@ GooglePlayServicesClient.OnConnectionFailedListener {
 	private AdView adView1;
 	private Location mlocation = null;
 	private LocationClient mLocationClient = null;
+	private LocationRequest mLocationRequest;
     // Define a request code to send to Google Play services. This code is returned in Activity.onActivityResult
     private final static int CONNECTION_FAILURE_RESOLUTION_REQUEST = 9000;
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_find_me_here);
+
 		mLocationClient = new LocationClient(this, this, this);
+		mLocationRequest = new LocationRequest();
+		// Use high accuracy
+		mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+	        // Set the update interval to 5 seconds
+		mLocationRequest.setInterval(5000);
+	        // Set the fastest update interval to 1 second
+		mLocationRequest.setFastestInterval(1000);
 		// Create the interstitial.
 	    interstitial = new InterstitialAd(this);
 	    interstitial.setAdUnitId("ca-app-pub-9439183503098916/3226250380");
-	    
+	    interstitial.setAdListener(new AdListener(){
+	          public void onAdLoaded(){
+	               displayInterstitial();
+	          }
+	});
 	 // Look up the AdView as a resource and load a request.
 	    adView1 = (AdView) this.findViewById(R.id.adView);
 	    AdRequest adRequest = new AdRequest.Builder()
@@ -118,7 +133,12 @@ GooglePlayServicesClient.OnConnectionFailedListener {
 		menu.add(Menu.NONE, MENU_ABOUT, Menu.NONE, "About");
 		return true;
 	}
-
+	// Invoke displayInterstitial() when you are ready to display an interstitial.
+	  public void displayInterstitial() {
+	    if (interstitial.isLoaded()) {
+	      interstitial.show();
+	    }
+	  }
 	@Override
     public boolean onOptionsItemSelected(MenuItem item)
     {
@@ -258,6 +278,44 @@ GooglePlayServicesClient.OnConnectionFailedListener {
 	        // Showing Alert Message
 	        alertDialog.show();
 	    }
+	    if (!gpsEnabled) {
+	    	AlertDialog alertDialog = new AlertDialog.Builder(
+	    			FindMeHere.this).create();
+	    	// Setting Dialog Title
+	        alertDialog.setTitle("GPS not enabled");
+	        
+	     // Setting Dialog Message
+	        alertDialog.setMessage("GPS is not enabled. You will get a very rough location based on nearest mobile network tower!");
+	        
+	        // Setting OK Button
+	        alertDialog.setButton("OK", new DialogInterface.OnClickListener() {
+	                public void onClick(DialogInterface dialog, int which) {
+	                // Write your code here to execute after dialog closed
+	                	//FindMeHere.this.finish() ;
+	                }
+	        });
+	        // Showing Alert Message
+	        alertDialog.show();
+	    }
+	    if (!wirelessnetworkEnabled) {
+	    	AlertDialog alertDialog = new AlertDialog.Builder(
+	    			FindMeHere.this).create();
+	    	// Setting Dialog Title
+	        alertDialog.setTitle("Location by mobile network not enabled");
+	        
+	     // Setting Dialog Message
+	        alertDialog.setMessage("Location by mobile network not enabled. You may not get any location, or a very old location if proper sky view is not avilable for GPS by satellite!");
+	        
+	        // Setting OK Button
+	        alertDialog.setButton("OK", new DialogInterface.OnClickListener() {
+	                public void onClick(DialogInterface dialog, int which) {
+	                // Write your code here to execute after dialog closed
+	                	//FindMeHere.this.finish() ;
+	                }
+	        });
+	        // Showing Alert Message
+	        alertDialog.show();
+	    }
 	}
 
 	public void SendWhatsApp(View view) {
@@ -281,12 +339,18 @@ GooglePlayServicesClient.OnConnectionFailedListener {
 	    if (waIntent != null) {
 	        waIntent.putExtra(Intent.EXTRA_TEXT, text);//
 	        startActivity(Intent.createChooser(waIntent, "Share with"));
-			// Create ad request.
-	        AdRequest adRequest= null;
-	        if (mlocation != null) {
-	        	adRequest = new AdRequest.Builder().setLocation(mlocation).build();
+			AdRequest adRequest = null;
+		    if (mlocation != null) {
+		    	adRequest = new AdRequest.Builder()
+				.addTestDevice(AdRequest.DEVICE_ID_EMULATOR)
+		        .addTestDevice("00946b999b4be935")
+		        .setLocation(mlocation)
+		        .build();
 	        } else {
-	        	adRequest = new AdRequest.Builder().build();
+		    	adRequest = new AdRequest.Builder()
+				.addTestDevice(AdRequest.DEVICE_ID_EMULATOR)
+		        .addTestDevice("00946b999b4be935")
+		        .build();
 	        }
 
 		    // Begin loading your interstitial.
@@ -305,12 +369,18 @@ GooglePlayServicesClient.OnConnectionFailedListener {
 		// this will ensure that directly g mail opens and other options dont show up - vishwas
 		intent.setType("message/rfc822");
 		startActivity(Intent.createChooser(intent, "Send mail")); 
-		// Create ad request.
-		AdRequest adRequest= null;
-        if (mlocation != null) {
-        	adRequest = new AdRequest.Builder().setLocation(mlocation).build();
+		AdRequest adRequest = null;
+	    if (mlocation != null) {
+	    	adRequest = new AdRequest.Builder()
+			.addTestDevice(AdRequest.DEVICE_ID_EMULATOR)
+	        .addTestDevice("00946b999b4be935")
+	        .setLocation(mlocation)
+	        .build();
         } else {
-        	adRequest = new AdRequest.Builder().build();
+	    	adRequest = new AdRequest.Builder()
+			.addTestDevice(AdRequest.DEVICE_ID_EMULATOR)
+	        .addTestDevice("00946b999b4be935")
+	        .build();
         }
 
 	    // Begin loading your interstitial.
@@ -327,12 +397,18 @@ GooglePlayServicesClient.OnConnectionFailedListener {
 		intent.putExtra("sms_body", String.format("%s\n\nFound location using \"Find Me Here\" App from Play Store at https://play.google.com/store/apps/details?id=com.gmail.tantraamsha.in.findmehere",tv.getText()));
 		intent.setType("vnd.android-dir/mms-sms"); 
 		startActivity(intent);
-		// Create ad request.
-		AdRequest adRequest= null;
-        if (mlocation != null) {
-        	adRequest = new AdRequest.Builder().setLocation(mlocation).build();
+		AdRequest adRequest = null;
+	    if (mlocation != null) {
+	    	adRequest = new AdRequest.Builder()
+			.addTestDevice(AdRequest.DEVICE_ID_EMULATOR)
+	        .addTestDevice("00946b999b4be935")
+	        .setLocation(mlocation)
+	        .build();
         } else {
-        	adRequest = new AdRequest.Builder().build();
+	    	adRequest = new AdRequest.Builder()
+			.addTestDevice(AdRequest.DEVICE_ID_EMULATOR)
+	        .addTestDevice("00946b999b4be935")
+	        .build();
         }
 
 	    // Begin loading your interstitial.
@@ -446,7 +522,11 @@ GooglePlayServicesClient.OnConnectionFailedListener {
     public void onConnected(Bundle dataBundle) {
         // Display the connection status
         Toast.makeText(this, "Connected", Toast.LENGTH_SHORT).show();
-
+        //ensuring that it gets the location
+        mlocation = mLocationClient.getLastLocation();
+        if (mlocation == null) {
+        	mLocationClient.requestLocationUpdates(mLocationRequest, this);
+        }
     }
  
     /*
@@ -492,4 +572,10 @@ GooglePlayServicesClient.OnConnectionFailedListener {
         	Toast.makeText(this,connectionResult.getErrorCode(),Toast.LENGTH_SHORT).show();
         }
     }
+	@Override
+	public void onLocationChanged(Location arg0) {
+		// TODO Auto-generated method stub
+		mLocationClient.removeLocationUpdates(this);
+	}
+
 }
