@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Locale;
 
 //import com.example.android.location.R;
-
+import com.google.android.gms.ads.*;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
@@ -34,9 +34,12 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.CheckBox;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 import com.gmail.tantraamsha.in.findmehere.R;
+
+
 
 @SuppressLint("ResourceAsColor")
 public class FindMeHere extends Activity {
@@ -47,7 +50,11 @@ public class FindMeHere extends Activity {
 	private Boolean foundLoc = false; 
 	private Boolean mIsGPS;
 	private InterstitialAd interstitial;
+	private AdView adView1;
 	private Geocoder mGeocoder;
+	private Location mlocation = null;
+	/* Your ad unit id. Replace with your actual ad unit id. */
+	private static final String AD_UNIT_ID = "ca-app-pub-9439183503098916/4269004781";
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_find_me_here);
@@ -56,15 +63,48 @@ public class FindMeHere extends Activity {
 		// Create the interstitial.
 	    interstitial = new InterstitialAd(this);
 	    interstitial.setAdUnitId("ca-app-pub-9439183503098916/3226250380");
-
 	    
+	 // Look up the AdView as a resource and load a request.
+	    adView1 = (AdView) this.findViewById(R.id.adView);
+	    AdRequest adRequest = new AdRequest.Builder()
+	    		.addTestDevice(AdRequest.DEVICE_ID_EMULATOR)
+	            .addTestDevice("00946b999b4be935")
+	            .build();
+	    adView1.loadAd(adRequest);
+
 	}
+	@Override
+	  public void onResume() {
+	    super.onResume();
+	    if (adView1 != null) {
+	    	adView1.resume();
+	    }
+	  }
+
+	  @Override
+	  public void onPause() {
+	    if (adView1 != null) {
+	    	adView1.pause();
+	    }
+	    super.onPause();
+	  }
+
+	  /** Called before the activity is destroyed. */
+	  @Override
+	  public void onDestroy() {
+	    // Destroy the AdView.
+	    if (adView1 != null) {
+	    	adView1.destroy();
+	    }
+	    super.onDestroy();
+	  }
     @Override
     protected void onStop() {
         super.onStop();
         if ( mLocationManager != null) {
         	mLocationManager.removeUpdates(mlistener);
         }
+        
     }
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -221,7 +261,7 @@ public class FindMeHere extends Activity {
 	    if (!wirelessnetworkEnabled) {
 	    	CheckBox cb =  (CheckBox) findViewById(R.id.chkUseGPSSatellite);
 	    	cb.setChecked(true);
-	    	Toast.makeText(this, "GPS Satellite may give old or no location if proper sky view is not available.", Toast.LENGTH_LONG).show();
+	    	Toast.makeText(this, "GPS Satellite may give old or no location if proper sky view is not available.", Toast.LENGTH_SHORT).show();
 	    	//requestUpdatesFromProvider(LocationManager.GPS_PROVIDER, -1);
 	    } else {
 	    	requestUpdatesFromProvider(LocationManager.NETWORK_PROVIDER, -1);
@@ -259,7 +299,7 @@ public class FindMeHere extends Activity {
 		        // Showing Alert Message
 		        alertDialog.show();
 		    } else {
-		    	Toast.makeText(this, "GPS Satellite may give old or no location if proper sky view is not available.", Toast.LENGTH_LONG).show();
+		    	Toast.makeText(this, "GPS Satellite may give old or no location if proper sky view is not available.", Toast.LENGTH_SHORT).show();
 			    requestUpdatesFromProvider(LocationManager.GPS_PROVIDER, -1);
 		    }
 		} else {
@@ -300,7 +340,7 @@ public class FindMeHere extends Activity {
 		    return;
 		}
 		if (!foundLoc) {
-			Toast.makeText(this, "Please click on Find Me Here button before sending mail.", Toast.LENGTH_LONG).show();
+			Toast.makeText(this, "Please click on Find Me Here button before sending message.", Toast.LENGTH_SHORT).show();
 			return;
 		}
 		Intent waIntent = new Intent(Intent.ACTION_SEND);
@@ -312,7 +352,12 @@ public class FindMeHere extends Activity {
 	        waIntent.putExtra(Intent.EXTRA_TEXT, text);//
 	        startActivity(Intent.createChooser(waIntent, "Share with"));
 			// Create ad request.
-		    AdRequest adRequest = new AdRequest.Builder().build();
+	        AdRequest adRequest= null;
+	        if (mlocation != null) {
+	        	adRequest = new AdRequest.Builder().setLocation(mlocation).build();
+	        } else {
+	        	adRequest = new AdRequest.Builder().build();
+	        }
 
 		    // Begin loading your interstitial.
 		    interstitial.loadAd(adRequest);
@@ -323,7 +368,7 @@ public class FindMeHere extends Activity {
 	}
 	public void sendMail(View view) {
 		if (!foundLoc) {
-			Toast.makeText(this, "Please click on Find Me Here button before sending mail.", Toast.LENGTH_LONG).show();
+			Toast.makeText(this, "Please click on Find Me Here button before sending mail.", Toast.LENGTH_SHORT).show();
 			return;
 		}
 		Intent intent=new Intent(Intent.ACTION_SEND);
@@ -338,14 +383,19 @@ public class FindMeHere extends Activity {
 		intent.setType("message/rfc822");
 		startActivity(Intent.createChooser(intent, "Send mail")); 
 		// Create ad request.
-	    AdRequest adRequest = new AdRequest.Builder().build();
+		AdRequest adRequest= null;
+        if (mlocation != null) {
+        	adRequest = new AdRequest.Builder().setLocation(mlocation).build();
+        } else {
+        	adRequest = new AdRequest.Builder().build();
+        }
 
 	    // Begin loading your interstitial.
 	    interstitial.loadAd(adRequest);
 	}
 	public void sendSMS(View view) {
 		if (!foundLoc) {
-			Toast.makeText(this, "Please click on Find Me Here button before sending sms.", Toast.LENGTH_LONG).show();
+			Toast.makeText(this, "Please click on Find Me Here button before sending sms.", Toast.LENGTH_SHORT).show();
 			return;
 		}
 		Uri smsUri = Uri.parse("tel:123456");
@@ -355,7 +405,12 @@ public class FindMeHere extends Activity {
 		intent.setType("vnd.android-dir/mms-sms"); 
 		startActivity(intent);
 		// Create ad request.
-	    AdRequest adRequest = new AdRequest.Builder().build();
+		AdRequest adRequest= null;
+        if (mlocation != null) {
+        	adRequest = new AdRequest.Builder().setLocation(mlocation).build();
+        } else {
+        	adRequest = new AdRequest.Builder().build();
+        }
 
 	    // Begin loading your interstitial.
 	    interstitial.loadAd(adRequest);
@@ -367,8 +422,17 @@ public class FindMeHere extends Activity {
         	Looper looper = null;
         	mLocationManager.requestSingleUpdate(provider, mlistener, looper);
             location = mLocationManager.getLastKnownLocation(provider);
+            mlocation = location;
+         // Look up the AdView as a resource and load a request.
+    	    adView1 = (AdView) this.findViewById(R.id.adView);
+    	    AdRequest adRequest = new AdRequest.Builder()
+    	    		.addTestDevice(AdRequest.DEVICE_ID_EMULATOR)
+    	            .addTestDevice("00946b999b4be935")
+    	            .setLocation(location)
+    	            .build();
+    	    adView1.loadAd(adRequest);
         } else {
-            Toast.makeText(this, errorResId, Toast.LENGTH_LONG).show();
+            Toast.makeText(this, errorResId, Toast.LENGTH_SHORT).show();
         }
         return location;
     }
@@ -481,11 +545,11 @@ public class FindMeHere extends Activity {
 			mIsGPS = true;
 		}
 		if (!gpsEnabled &&  !wirelessnetworkEnabled) {
-			Toast.makeText(this, "No location service on!", Toast.LENGTH_LONG).show();
+			Toast.makeText(this, "No location service on!", Toast.LENGTH_SHORT).show();
 			return;
 		}
 		if (cb.isChecked() && !gpsEnabled) {
-			Toast.makeText(this, "GPS service not on!", Toast.LENGTH_LONG).show();
+			Toast.makeText(this, "GPS service not on!", Toast.LENGTH_SHORT).show();
 			return;
 		}
 		GetLocation getLocation = new GetLocation();

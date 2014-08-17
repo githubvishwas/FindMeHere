@@ -5,15 +5,15 @@
     android:background="@drawable/bgmap">
 	
 <RelativeLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    xmlns:ads="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="800dp"
     android:background="@drawable/bgmap"
     android:fadingEdge="none"
     android:gravity="top"
+    android:id="@+id/layoutFindMeHere"
     tools:context=".FindMeHere">
-
     <Button
         android:id="@+id/btnFindMeHere"
         android:layout_width="wrap_content"
@@ -88,5 +88,21 @@
 	     android:onClick="SendWhatsApp"
 	     android:text="@string/send_location_by_whatsapp" />
 
+	<com.google.android.gms.ads.AdView
+	    android:id="@+id/adView"
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"
+	    android:layout_alignParentLeft="true"
+	    android:layout_alignParentRight="true"
+	    android:layout_below="@+id/btnSendWhatsApp"
+	    android:layout_marginTop="14dp"
+	    ads:adSize="BANNER"
+	    ads:adUnitId="ca-app-pub-9439183503098916/4269004781"
+	    android:minHeight="50dip"
+	    android:minWidth="320dip" >
+
+	</com.google.android.gms.ads.AdView>
+
 </RelativeLayout>
+		
 </ScrollView>
