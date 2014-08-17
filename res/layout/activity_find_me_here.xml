@@ -46,16 +46,6 @@
         android:text="@string/my_nearest_google_landmark_location"
         android:textStyle="bold" />
 
-    <CheckBox
-        android:id="@+id/chkUseGPSSatellite"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignRight="@+id/btnFindMeHere"
-        android:layout_below="@+id/btnFindMeHere"
-        android:checked="false"
-        android:onClick="UseGPSSatellites"
-        android:text="@string/Use_GPS_Satellites" />
-
     <Button
         android:id="@+id/btnSendSMS"
         android:layout_width="wrap_content"
@@ -71,7 +61,7 @@
         android:id="@+id/btnSendMail"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignRight="@+id/chkUseGPSSatellite"
+        android:layout_alignRight="@+id/btnFindMeHere"
         android:layout_below="@+id/txtLocation"
         android:layout_marginRight="64dp"
         android:layout_marginTop="29dp"

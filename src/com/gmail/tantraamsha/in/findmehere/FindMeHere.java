@@ -6,34 +6,35 @@ import java.util.Locale;
 
 //import com.example.android.location.R;
 import com.google.android.gms.ads.*;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GooglePlayServicesClient;
+import com.google.android.gms.location.LocationClient;
+
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
-import android.location.LocationListener;
 import android.location.LocationManager;
-import android.location.LocationProvider;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Looper;
 import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentSender;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
+import android.support.v4.app.FragmentActivity;
 import android.text.method.LinkMovementMethod;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.CheckBox;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -42,24 +43,25 @@ import com.gmail.tantraamsha.in.findmehere.R;
 
 
 @SuppressLint("ResourceAsColor")
-public class FindMeHere extends Activity {
+public class FindMeHere extends FragmentActivity implements
+GooglePlayServicesClient.ConnectionCallbacks,
+GooglePlayServicesClient.OnConnectionFailedListener {
 	public static final int MENU_LOCATION = Menu.FIRST;
 	public static final int MENU_INTERNET = Menu.FIRST + 1;
 	public static final int MENU_ABOUT = Menu.FIRST + 2;
 	private LocationManager mLocationManager;
 	private Boolean foundLoc = false; 
-	private Boolean mIsGPS;
+
 	private InterstitialAd interstitial;
 	private AdView adView1;
-	private Geocoder mGeocoder;
 	private Location mlocation = null;
-	/* Your ad unit id. Replace with your actual ad unit id. */
-	private static final String AD_UNIT_ID = "ca-app-pub-9439183503098916/4269004781";
+	private LocationClient mLocationClient = null;
+    // Define a request code to send to Google Play services. This code is returned in Activity.onActivityResult
+    private final static int CONNECTION_FAILURE_RESOLUTION_REQUEST = 9000;
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_find_me_here);
-		mGeocoder = new Geocoder(FindMeHere.this, Locale.ENGLISH);
-		
+		mLocationClient = new LocationClient(this, this, this);
 		// Create the interstitial.
 	    interstitial = new InterstitialAd(this);
 	    interstitial.setAdUnitId("ca-app-pub-9439183503098916/3226250380");
@@ -101,10 +103,9 @@ public class FindMeHere extends Activity {
     @Override
     protected void onStop() {
         super.onStop();
-        if ( mLocationManager != null) {
-        	mLocationManager.removeUpdates(mlistener);
-        }
-        
+
+     // Disconnecting the client invalidates it.
+        mLocationClient.disconnect();
     }
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -187,7 +188,8 @@ public class FindMeHere extends Activity {
 		
 		mLocationManager =
 	            (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-	    
+        // Connect the client.
+        mLocationClient.connect();
 	    final boolean wirelessnetworkEnabled = mLocationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
 	    final boolean gpsEnabled = mLocationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
 	    
@@ -195,8 +197,7 @@ public class FindMeHere extends Activity {
 	    final boolean internetOn = haveNetworkConnection();
 	    if (!wirelessnetworkEnabled && !internetOn && !gpsEnabled) {
 	        // Build an alert dialog here that requests that the user enable
-	        // the location services, then when the user clicks the "OK" button,
-	        // call enableLocationSettings()
+	        // the location services
 	    	AlertDialog alertDialog = new AlertDialog.Builder(
 	    			FindMeHere.this).create();
 	    	// Setting Dialog Title
@@ -257,79 +258,8 @@ public class FindMeHere extends Activity {
 	        // Showing Alert Message
 	        alertDialog.show();
 	    }
-	    
-	    if (!wirelessnetworkEnabled) {
-	    	CheckBox cb =  (CheckBox) findViewById(R.id.chkUseGPSSatellite);
-	    	cb.setChecked(true);
-	    	Toast.makeText(this, "GPS Satellite may give old or no location if proper sky view is not available.", Toast.LENGTH_SHORT).show();
-	    	//requestUpdatesFromProvider(LocationManager.GPS_PROVIDER, -1);
-	    } else {
-	    	requestUpdatesFromProvider(LocationManager.NETWORK_PROVIDER, -1);
-	    }	    
 	}
-	//private void enableLocationSettings() {
-	//    Intent settingsIntent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
-	//    startActivity(settingsIntent);
-	//}
-	public void UseGPSSatellites (View view) {
-		CheckBox cb =  (CheckBox) findViewById(R.id.chkUseGPSSatellite);
-		mLocationManager =
-	            (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-		if (cb.isChecked()) {
-			
-		    
-		    final boolean gpsEnabled = mLocationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
-		    if (!gpsEnabled) {
-		    	AlertDialog alertDialog = new AlertDialog.Builder(
-		    			FindMeHere.this).create();
-		    	// Setting Dialog Title
-		        alertDialog.setTitle("GPS using satellite not enabled alert");
-		        
-		     // Setting Dialog Message
-		        alertDialog.setMessage("Please enable GPS using satellite to use this");
-		        
-		        // Setting OK Button
-		        alertDialog.setButton("OK", new DialogInterface.OnClickListener() {
-		                public void onClick(DialogInterface dialog, int which) {
-		                // Write your code here to execute after dialog closed
-		                	CheckBox cb1 =  (CheckBox) findViewById(R.id.chkUseGPSSatellite);
-		                	cb1.setChecked(false);
-		                }
-		        });
-		        // Showing Alert Message
-		        alertDialog.show();
-		    } else {
-		    	Toast.makeText(this, "GPS Satellite may give old or no location if proper sky view is not available.", Toast.LENGTH_SHORT).show();
-			    requestUpdatesFromProvider(LocationManager.GPS_PROVIDER, -1);
-		    }
-		} else {
-			final boolean gpsEnabled = mLocationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
-		    if (!gpsEnabled) {
-		    	AlertDialog alertDialog = new AlertDialog.Builder(
-		    			FindMeHere.this).create();
-		    	// Setting Dialog Title
-		        alertDialog.setTitle("GPS using network not enabled alert");
-		        
-		     // Setting Dialog Message
-		        alertDialog.setMessage("Please enable GPS using network to use this");
-		        
-		        // Setting OK Button
-		        alertDialog.setButton("OK", new DialogInterface.OnClickListener() {
-		                public void onClick(DialogInterface dialog, int which) {
-		                // Write your code here to execute after dialog closed
-		                	CheckBox cb1 =  (CheckBox) findViewById(R.id.chkUseGPSSatellite);
-		                	cb1.setChecked(true);
-		                }
-		        });
-		        // Showing Alert Message
-		        alertDialog.show();
-		    } else {	    
-		    	requestUpdatesFromProvider(LocationManager.NETWORK_PROVIDER, -1);
-			}
-		    }
-			
-		
-	}
+
 	public void SendWhatsApp(View view) {
 		try{
 		    ApplicationInfo info = getPackageManager().
@@ -361,10 +291,7 @@ public class FindMeHere extends Activity {
 
 		    // Begin loading your interstitial.
 		    interstitial.loadAd(adRequest);
-	    } else {
-	        Toast.makeText(this, "WhatsApp not Installed", Toast.LENGTH_SHORT)
-	                .show();
-	    }
+	    } 
 	}
 	public void sendMail(View view) {
 		if (!foundLoc) {
@@ -372,13 +299,9 @@ public class FindMeHere extends Activity {
 			return;
 		}
 		Intent intent=new Intent(Intent.ACTION_SEND);
-		//String[] recipients={"xyz@gmail.com"};
-		//intent.putExtra(Intent.EXTRA_EMAIL, recipients);
 		intent.putExtra(Intent.EXTRA_SUBJECT,"My location from Find Me Here App");
 		TextView tv =  (TextView) findViewById(R.id.txtLocation);
 		intent.putExtra(Intent.EXTRA_TEXT,String.format("%s\n\nFound location using \"Find Me Here\" App from Play Store at https://play.google.com/store/apps/details?id=com.gmail.tantraamsha.in.findmehere",tv.getText()));
-		//intent.putExtra(Intent.EXTRA_CC,"ghi");
-		//intent.setType("text/html");
 		// this will ensure that directly g mail opens and other options dont show up - vishwas
 		intent.setType("message/rfc822");
 		startActivity(Intent.createChooser(intent, "Send mail")); 
@@ -415,200 +338,49 @@ public class FindMeHere extends Activity {
 	    // Begin loading your interstitial.
 	    interstitial.loadAd(adRequest);
 	}
-	private Location requestUpdatesFromProvider(final String provider, final int errorResId) {
-        Location location = null;
-        if (mLocationManager.isProviderEnabled(provider)) {
-            //mLocationManager.requestLocationUpdates(provider, 10, 10, mlistener);
-        	Looper looper = null;
-        	mLocationManager.requestSingleUpdate(provider, mlistener, looper);
-            location = mLocationManager.getLastKnownLocation(provider);
-            mlocation = location;
-         // Look up the AdView as a resource and load a request.
-    	    adView1 = (AdView) this.findViewById(R.id.adView);
-    	    AdRequest adRequest = new AdRequest.Builder()
-    	    		.addTestDevice(AdRequest.DEVICE_ID_EMULATOR)
-    	            .addTestDevice("00946b999b4be935")
-    	            .setLocation(location)
-    	            .build();
-    	    adView1.loadAd(adRequest);
-        } else {
-            Toast.makeText(this, errorResId, Toast.LENGTH_SHORT).show();
-        }
-        return location;
-    }
-	private final LocationListener mlistener = new LocationListener() {
-
-	    @Override
-	    public void onLocationChanged(Location location) {
-	        // A new location update is received.  Do something useful with it.  In this case,
-	        // we're sending the update to a handler which then updates the UI with the new
-	        // location.
-	    	//mLatitude = location.getLatitude();
-	    	//mLongitude = location.getLongitude();
-	        }
-	    @Override
-        public void onProviderDisabled(String provider) {
-        }
-
-        @Override
-        public void onProviderEnabled(String provider) {
-        }
-
-        @Override
-        public void onStatusChanged(String provider, int status, Bundle extras) {
-        }
-	};
-	
-	public void sendMessage_bak(View view)  {
-		TextView tv =  (TextView) findViewById(R.id.txtLocation);
-		CheckBox cb =  (CheckBox) findViewById(R.id.chkUseGPSSatellite);
-		//tv.setText("Fetching location ...");
-		//tv.refreshDrawableState();
-		//view.refreshDrawableState();
-		tv.setClickable(true);
-		tv.setMovementMethod(LinkMovementMethod.getInstance());
-		LocationManager locationManager =
-		        (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
-		LocationProvider provider = null ;
-		// Retrieve a list of location providers that have fine accuracy, no monetary cost, etc
-		//Criteria criteria = new Criteria();
-		//criteria.setAccuracy(Criteria.ACCURACY_FINE);
-		//criteria.setCostAllowed(false);
-
-		String providerName = LocationManager.NETWORK_PROVIDER ;
-		if (cb.isChecked()) {
-			providerName = LocationManager.GPS_PROVIDER ;
-		}
-		
-		provider =
-        locationManager.getProvider(providerName);
-		if (provider == null) {
-			tv.setText("Could not get location, check GPS/Internet connection ! \n There may be a temporary loss of connection, please try again");
-			return ;
-		}
-		
-		Location loc = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-		if (cb.isChecked()) {
-			loc = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-		}
-		//double altitude = loc.getAltitude() ;
-		//loc = requestUpdatesFromProvider(providerName, -1);
-		if (loc == null) {
-			tv.setText("Could not get location, please check GPS/Internet connection !");
-			return ;
-		}
-		double latitude = loc.getLatitude() ;
-		double longitude = loc.getLongitude() ;
-		String googleMapURL = String.format(Locale.ENGLISH,"http://maps.google.com/maps?q=%f,%f&z=18",latitude,longitude);
-		//googleMapURL = Html.fromHtml(googleMapURL)
-		Geocoder geocoder;
-		List<Address> addresses = null;
-		geocoder = new Geocoder(this, Locale.ENGLISH);
-		
-		try {
-			addresses = geocoder.getFromLocation(latitude, longitude, 1);
-        } catch (IOException e) {
-        	tv.setText(String.format("Could not resolve location. Providing last known location \nLongitude: %s\nLatitude: %s\nFind me on google map using the following link \n%s \nSorry, check internet/GPS connection ! \n There may be a temporary loss of connection, please try again",longitude,latitude,googleMapURL));
-            e.printStackTrace();
-        }
-		StringBuilder sb = new StringBuilder();
-		if (addresses.size() == 0) {
-			//tv.setText(String.format("Latitude: %s \nLongitude: %s \nSorry, Could not resolve address !",Double.toString(latitude),Double.toString(longitude)));
-		} else {
-			//String address = addresses.get(0).getAddressLine(0);
-			//String city = addresses.get(0).getAddressLine(1);
-			//String country = addresses.get(0).getAddressLine(2);
-			//tv.setText(String.format("My Nearest Landmark: \n%s \n%s \n%s \nGoogle map location link \n%s ", address, city, country,googleMapURL ));
-			Address address = addresses.get(0);
-			for (int i =0; i < address.getMaxAddressLineIndex(); i++)
-				sb.append(address.getAddressLine(1)).append("\n");
-			sb.append(address.getLocality()).append("\n");
-			sb.append(address.getPostalCode()).append("\n");
-			sb.append(address.getCountryName()).append("\n");
-			tv.setText(String.format(" ? My Nearest Landmark:\n" + sb.toString() + "Google map location link \n" + googleMapURL ));
-		}
-	}	
-	public void Settings_cb(View view) {
-		//Toast.makeText(this, "This is a very simple app and has no complex settings, so enjoy !! \nVishwas", Toast.LENGTH_LONG).show();
-	}
 	public void findMeHere_cb(View view)  {
 		//final boolean internetOn = haveNetworkConnection();
 		foundLoc = true;
 		final boolean gpsEnabled = mLocationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
 		final boolean wirelessnetworkEnabled = mLocationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
 		TextView tv =  (TextView) findViewById(R.id.txtLocation);
-		CheckBox cb =  (CheckBox) findViewById(R.id.chkUseGPSSatellite);
+
 		tv.setClickable(true);
 		tv.setMovementMethod(LinkMovementMethod.getInstance());
-		mIsGPS = false;
-		if (cb.isChecked()) {
-			mIsGPS = true;
-		}
+		
 		if (!gpsEnabled &&  !wirelessnetworkEnabled) {
 			Toast.makeText(this, "No location service on!", Toast.LENGTH_SHORT).show();
 			return;
 		}
-		if (cb.isChecked() && !gpsEnabled) {
-			Toast.makeText(this, "GPS service not on!", Toast.LENGTH_SHORT).show();
-			return;
-		}
+
 		GetLocation getLocation = new GetLocation();
 		if (getLocation != null) {
-			getLocation.mIsGPS =  mIsGPS;
-			getLocation.mLocationManager = mLocationManager ;
 			getLocation.mGeocoder = new Geocoder(this, Locale.ENGLISH);
 			getLocation.execute("");
 		} 
 
 	}
 	private class GetLocation extends AsyncTask<String, Integer, String> {
-		
-		private boolean mIsGPS ;
-		private LocationManager mLocationManager ;
+	
 		private Geocoder mGeocoder;
 		private String mText;
 		private ProgressDialog mProgressDialog;
 		
 		@Override
-		//protected String doInBackground(String... arg0) {
-		//	publishProgress(50);
-		//	return "";
-		//}
-		
+
 		protected String doInBackground(String... arg0) {
 			mText = "";
 			publishProgress(50);
-			LocationManager locationManager = this.mLocationManager ;
-			LocationProvider provider = null ;
-			
-			String providerName = LocationManager.NETWORK_PROVIDER ;
-			if (this.mIsGPS) {
-				providerName = LocationManager.GPS_PROVIDER ;
-			}
-			
-			provider =
-	        locationManager.getProvider(providerName);
-			if (provider == null) {
-				mText = "Could not get location, check GPS/Internet connection ! \n There may be a temporary loss of connection, please try again" ;
-				publishProgress(100);
-				return "";
-			}
-			
-			Location loc = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-			if (this.mIsGPS) {
-				loc = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-			}
-			//double altitude = loc.getAltitude() ;
-			//loc = requestUpdatesFromProvider(providerName, -1);
-			if (loc == null) {
+			mlocation = mLocationClient.getLastLocation();
+
+			if (mlocation == null) {
 				mText = "Could not get location, please check GPS/Internet connection !" ;
 				publishProgress(100);
 				return "";
 			}
-			double latitude = loc.getLatitude() ;
-			double longitude = loc.getLongitude() ;
+			double latitude = mlocation.getLatitude() ;
+			double longitude = mlocation.getLongitude() ;
 			String googleMapURL = String.format(Locale.ENGLISH,"http://maps.google.com/maps?q=%f,%f&z=18",latitude,longitude);
-			//googleMapURL = Html.fromHtml(googleMapURL)
 			Geocoder geocoder;
 			List<Address> addresses = null;
 			geocoder = mGeocoder ;
@@ -625,19 +397,12 @@ public class FindMeHere extends Activity {
 			if (addresses == null) {
 				//tv.setText(String.format("Latitude: %s \nLongitude: %s \nSorry, Could not resolve address !",Double.toString(latitude),Double.toString(longitude)));
 			} else {
-				//String address = addresses.get(0).getAddressLine(0);
-				//String city = addresses.get(0).getAddressLine(1);
-				//String country = addresses.get(0).getAddressLine(2);
-				//mText = String.format("Nearest Landmark:\n%s \n%s \n%s \nGoogle map location link \n%s ", address, city, country,googleMapURL );
 				Address address = addresses.get(0);
 				for (int i =0; i < address.getMaxAddressLineIndex(); i++)
 					sb.append(address.getAddressLine(i)).append("\n");
-				//sb.append(address.getLocality()).append("\n");
-				//sb.append(address.getPostalCode()).append("\n");
 				sb.append(address.getCountryName()).append("\n");
 				mText = String.format("Nearest Landmark:\n" + sb.toString() + "Google map location link \n" + googleMapURL );
-				publishProgress(100);
-				//tv.setText(String.format("Nearest Google Landmark Address: %s \n%s \n%s \nFind me on google map using the following link \n%s ", address, city, country,googleMapURL ));
+				publishProgress(100);				//tv.setText(String.format("Nearest Google Landmark Address: %s \n%s \n%s \nFind me on google map using the following link \n%s ", address, city, country,googleMapURL ));
 			}
 			return "";
 		}
@@ -656,10 +421,15 @@ public class FindMeHere extends Activity {
 	    @Override
 	    protected void onProgressUpdate(Integer... progress) {
 	        super.onProgressUpdate(progress);
-	        
-	        //mProgressDialog.setProgress(progress[0]);
 	        TextView tv =  (TextView) findViewById(R.id.txtLocation);
 	        tv.setText(mText);
+	        // Look up the AdView as a resource and load a request.
+		    adView1 = (AdView) findViewById(R.id.adView);
+		    AdRequest adRequest = new AdRequest.Builder()
+		    		.addTestDevice(AdRequest.DEVICE_ID_EMULATOR)
+		            .addTestDevice("00946b999b4be935")
+		            .build();
+		    adView1.loadAd(adRequest);
 	    }
 	    @Override
 	    protected void onPostExecute(String str) {
@@ -667,4 +437,59 @@ public class FindMeHere extends Activity {
 	        mProgressDialog.dismiss();
 	    }
 	}
+	 /*
+     * Called by Location Services when the request to connect the
+     * client finishes successfully. At this point, you can
+     * request the current location or start periodic updates
+     */
+    @Override
+    public void onConnected(Bundle dataBundle) {
+        // Display the connection status
+        Toast.makeText(this, "Connected", Toast.LENGTH_SHORT).show();
+
+    }
+ 
+    /*
+     * Called by Location Services if the connection to the
+     * location client drops because of an error.
+     */
+    @Override
+    public void onDisconnected() {
+        // Display the connection status
+        Toast.makeText(this, "Disconnected. Please re-connect.",
+                Toast.LENGTH_SHORT).show();
+    }
+
+    /*
+     * Called by Location Services if the attempt to
+     * Location Services fails.
+     */
+    @Override
+    public void onConnectionFailed(ConnectionResult connectionResult) {
+        /*
+         * Google Play services can resolve some errors it detects.
+         * If the error has a resolution, try sending an Intent to
+         * start a Google Play services activity that can resolve
+         * error.
+         */
+        if (connectionResult.hasResolution()) {
+            try {
+                // Start an Activity that tries to resolve the error
+                connectionResult.startResolutionForResult(this, CONNECTION_FAILURE_RESOLUTION_REQUEST);
+                /*
+                 * Thrown if Google Play services canceled the original
+                 * PendingIntent
+                 */
+            } catch (IntentSender.SendIntentException e) {
+                // Log the error
+                e.printStackTrace();
+            }
+        } else {
+            /*
+             * If no resolution is available, display a dialog to the
+             * user with the error.
+             */
+        	Toast.makeText(this,connectionResult.getErrorCode(),Toast.LENGTH_SHORT).show();
+        }
+    }
 }
