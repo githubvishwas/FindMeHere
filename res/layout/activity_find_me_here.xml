@@ -39,44 +39,13 @@
         android:layout_height="wrap_content"
         android:layout_below="@+id/btnFindMeHere"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="44dp"
+        android:layout_marginTop="20dp"
         android:autoLink="web"
         android:background="#FFFFFF"
         android:scrollbars="vertical"
         android:text="@string/my_nearest_google_landmark_location"
-        android:textStyle="bold" />
-
-    <Button
-        android:id="@+id/btnSendSMS"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignBaseline="@+id/btnSendMail"
-        android:layout_alignBottom="@+id/btnSendMail"
-        android:layout_alignLeft="@+id/btnFindMeHere"
-        android:layout_marginLeft="70dp"
-        android:onClick="sendSMS"
-        android:text="@string/send_location_by_sms" />
-
-    <Button
-        android:id="@+id/btnSendMail"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignRight="@+id/btnFindMeHere"
-        android:layout_below="@+id/txtLocation"
-        android:layout_marginRight="64dp"
-        android:layout_marginTop="29dp"
-        android:onClick="sendMail"
-        android:text="@string/send_location_by_gmail" />
-
-	 <Button
-	     android:id="@+id/btnSendWhatsApp"
-	     android:layout_width="wrap_content"
-	     android:layout_height="wrap_content"
-	     android:layout_alignLeft="@+id/btnFindMeHere"
-	     android:layout_below="@+id/btnSendSMS"
-	     android:layout_marginTop="16dp"
-	     android:onClick="SendWhatsApp"
-	     android:text="@string/send_location_by_whatsapp" />
+        android:textStyle="bold" 
+        android:textIsSelectable="true" />
 
 	<com.google.android.gms.ads.AdView
 	    android:id="@+id/adView"
@@ -92,6 +61,48 @@
 	    android:minWidth="320dip" >
 
 	</com.google.android.gms.ads.AdView>
+
+	<TextView
+	    android:id="@+id/txtlabel"
+	    android:layout_width="250dip"
+	    android:layout_height="wrap_content"
+	    android:layout_above="@+id/btnSendSMS"
+	    android:layout_alignLeft="@+id/txtLocation"
+	    android:autoLink="web"
+	    android:background="#FFFFFF"
+	    android:scrollbars="vertical"
+	    android:text="@string/send_by"
+	    android:textStyle="bold" />
+
+	<Button
+	    android:id="@+id/btnSendMail"
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"
+	    android:layout_alignLeft="@+id/txtlabel"
+	    android:layout_below="@+id/txtLocation"
+	    android:layout_marginTop="36dp"
+	    android:onClick="sendMail"
+	    android:text="@string/send_location_by_gmail" />
+
+	<Button
+	    android:id="@+id/btnSendWhatsApp"
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"
+	    android:layout_alignBaseline="@+id/btnSendSMS"
+	    android:layout_alignBottom="@+id/btnSendSMS"
+	    android:layout_toRightOf="@+id/btnSendSMS"
+	    android:onClick="SendWhatsApp"
+	    android:text="@string/send_location_by_whatsapp" />
+
+	<Button
+	    android:id="@+id/btnSendSMS"
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"
+	    android:layout_alignBaseline="@+id/btnSendMail"
+	    android:layout_alignBottom="@+id/btnSendMail"
+	    android:layout_toRightOf="@+id/btnSendMail"
+	    android:onClick="sendSMS"
+	    android:text="@string/send_location_by_sms" />
 
 </RelativeLayout>
 		

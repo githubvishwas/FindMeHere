@@ -73,6 +73,7 @@ com.google.android.gms.location.LocationListener {
 		mLocationRequest.setInterval(5000);
 	        // Set the fastest update interval to 1 second
 		mLocationRequest.setFastestInterval(1000);
+		mLocationRequest.setSmallestDisplacement(1);
 		// Create the interstitial.
 	    interstitial = new InterstitialAd(this);
 	    interstitial.setAdUnitId("ca-app-pub-9439183503098916/3226250380");
@@ -450,7 +451,7 @@ com.google.android.gms.location.LocationListener {
 			mlocation = mLocationClient.getLastLocation();
 
 			if (mlocation == null) {
-				mText = "Could not get location, please check GPS/Internet connection !" ;
+				mText = "Could not get location, please check GPS/Internet connection !\nThere may be a temporary loss of connection, please try again" ;
 				publishProgress(100);
 				return "";
 			}
@@ -465,7 +466,7 @@ com.google.android.gms.location.LocationListener {
 				addresses = geocoder.getFromLocation(latitude, longitude, 1);
 	        } catch (IOException e) {
 	        	//tv.setText(String.format("Could not resolve location. Providing last known location \nLongitude: %s\nLatitude: %s\nFind me on google map using the following link \n%s \nSorry, check internet/GPS connection ! \n There may be a temporary loss of connection, please try again",longitude,latitude,googleMapURL));
-	        	mText = String.format("Could not resolve location. Providing last known location \nLongitude: %s\nLatitude: %s\nGoogle map location link \n%s \nSorry, check internet/GPS connection ! \n There may be a temporary loss of connection, please try again",longitude,latitude,googleMapURL);
+	        	mText = String.format("Last known location \nLongitude: %s\nLatitude: %s\nGoogle map location link \n%s \nSorry, check internet/GPS connection ! \nThere may be a temporary loss of connection, please try again",longitude,latitude,googleMapURL);
 	        	publishProgress(100);
 	            e.printStackTrace();
 	        }
@@ -573,8 +574,9 @@ com.google.android.gms.location.LocationListener {
         }
     }
 	@Override
-	public void onLocationChanged(Location arg0) {
+	public void onLocationChanged(Location loc) {
 		// TODO Auto-generated method stub
+		mlocation = loc;
 		mLocationClient.removeLocationUpdates(this);
 	}
 
