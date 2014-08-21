@@ -59,6 +59,7 @@ com.google.android.gms.location.LocationListener {
 	private Location mlocation = null;
 	private LocationClient mLocationClient = null;
 	private LocationRequest mLocationRequest;
+	private Geocoder anotherGeoCoder = null;
     // Define a request code to send to Google Play services. This code is returned in Activity.onActivityResult
     private final static int CONNECTION_FAILURE_RESOLUTION_REQUEST = 9000;
 	protected void onCreate(Bundle savedInstanceState) {
@@ -89,7 +90,8 @@ com.google.android.gms.location.LocationListener {
 	            .addTestDevice("00946b999b4be935")
 	            .build();
 	    adView1.loadAd(adRequest);
-
+	    anotherGeoCoder = new Geocoder(this, Locale.ENGLISH);
+	    
 	}
 	@Override
 	  public void onResume() {
@@ -118,10 +120,10 @@ com.google.android.gms.location.LocationListener {
 	  }
     @Override
     protected void onStop() {
+    	mLocationClient.disconnect();
         super.onStop();
-
      // Disconnecting the client invalidates it.
-        mLocationClient.disconnect();
+        
     }
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -206,11 +208,11 @@ com.google.android.gms.location.LocationListener {
 	    // This verification should be done during onStart() because the system calls
 	    // this method when the user returns to the activity, which ensures the desired
 	    // location provider is enabled each time the activity resumes from the stopped state.
-		
+		mLocationClient.connect();
 		mLocationManager =
 	            (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         // Connect the client.
-        mLocationClient.connect();
+        
 	    final boolean wirelessnetworkEnabled = mLocationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
 	    final boolean gpsEnabled = mLocationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
 	    
@@ -239,8 +241,8 @@ com.google.android.gms.location.LocationListener {
 
 	        // Showing Alert Message
 	        alertDialog.show();
-	    } 
-	    if (!wirelessnetworkEnabled && !gpsEnabled) {
+	        return;
+	    } else if (!wirelessnetworkEnabled && !gpsEnabled) {
 	    	AlertDialog alertDialog = new AlertDialog.Builder(
 	    			FindMeHere.this).create();
 	    	// Setting Dialog Title
@@ -259,6 +261,7 @@ com.google.android.gms.location.LocationListener {
 	        });
 	        // Showing Alert Message
 	        alertDialog.show();
+	        return;
 	    } 
 	    if (!internetOn) {
 	    	AlertDialog alertDialog = new AlertDialog.Builder(
@@ -448,7 +451,11 @@ com.google.android.gms.location.LocationListener {
 		protected String doInBackground(String... arg0) {
 			mText = "";
 			publishProgress(50);
-			mlocation = mLocationClient.getLastLocation();
+			if (mlocation == null) {
+				//if location changed has not triggered a location
+				mlocation = mLocationClient.getLastLocation();
+			}
+			
 
 			if (mlocation == null) {
 				mText = "Could not get location, please check GPS/Internet connection !\nThere may be a temporary loss of connection, please try again" ;
@@ -481,6 +488,8 @@ com.google.android.gms.location.LocationListener {
 				mText = String.format("Nearest Landmark:\n" + sb.toString() + "Google map location link \n" + googleMapURL );
 				publishProgress(100);				//tv.setText(String.format("Nearest Google Landmark Address: %s \n%s \n%s \nFind me on google map using the following link \n%s ", address, city, country,googleMapURL ));
 			}
+			// setting location to null, so that new location is considered next time
+			mlocation = null;
 			return "";
 		}
 		@Override
@@ -525,9 +534,7 @@ com.google.android.gms.location.LocationListener {
         Toast.makeText(this, "Connected", Toast.LENGTH_SHORT).show();
         //ensuring that it gets the location
         mlocation = mLocationClient.getLastLocation();
-        if (mlocation == null) {
-        	mLocationClient.requestLocationUpdates(mLocationRequest, this);
-        }
+        mLocationClient.requestLocationUpdates(mLocationRequest, this);
     }
  
     /*
@@ -539,6 +546,7 @@ com.google.android.gms.location.LocationListener {
         // Display the connection status
         Toast.makeText(this, "Disconnected. Please re-connect.",
                 Toast.LENGTH_SHORT).show();
+        mLocationClient.removeLocationUpdates(this);
     }
 
     /*
@@ -577,7 +585,37 @@ com.google.android.gms.location.LocationListener {
 	public void onLocationChanged(Location loc) {
 		// TODO Auto-generated method stub
 		mlocation = loc;
-		mLocationClient.removeLocationUpdates(this);
+		//double latitude = mlocation.getLatitude() ;
+		//double longitude = mlocation.getLongitude() ;
+		//String lText = "";
+		//String googleMapURL = String.format(Locale.ENGLISH,"http://maps.google.com/maps?q=%f,%f&z=18",latitude,longitude);
+		//Geocoder geocoder;
+		//List<Address> addresses = null;
+		//geocoder = anotherGeoCoder ;
+		
+		//try {
+		//	addresses = geocoder.getFromLocation(latitude, longitude, 1);
+        //} catch (IOException e) {
+        	////tv.setText(String.format("Could not resolve location. Providing last known location \nLongitude: %s\nLatitude: %s\nFind me on google map using the following link \n%s \nSorry, check internet/GPS connection ! \n There may be a temporary loss of connection, please try again",longitude,latitude,googleMapURL));
+        	//lText = String.format("Last known location \nLongitude: %s\nLatitude: %s\nGoogle map location link \n%s \nSorry, check internet/GPS connection ! \nThere may be a temporary loss of connection, please try again",longitude,latitude,googleMapURL);
+        	
+        //}
+		//StringBuilder sb = new StringBuilder();
+		//if (addresses == null) {
+		//	lText = "mull";
+		//	
+			////tv.setText(String.format("Latitude: %s \nLongitude: %s \nSorry, Could not resolve address !",Double.toString(latitude),Double.toString(longitude)));
+		//} else {
+			//Address address = addresses.get(0);
+			//for (int i =0; i < address.getMaxAddressLineIndex(); i++)
+			//	sb.append(address.getAddressLine(i)).append("\n");
+			//sb.append(address.getCountryName()).append("\n");
+			//lText = String.format("Nearest Landmark:\n" + sb.toString() + "Google map location link \n" + googleMapURL );
+			
+							////tv.setText(String.format("Nearest Google Landmark Address: %s \n%s \n%s \nFind me on google map using the following link \n%s ", address, city, country,googleMapURL ));
+		//}
+		//Toast.makeText(this,lText,Toast.LENGTH_SHORT).show();
+		
 	}
 
 }
