@@ -435,8 +435,8 @@ com.google.android.gms.location.LocationListener {
 
 		GetLocation getLocation = new GetLocation();
 		if (getLocation != null) {
-			Locale mLocale = new Locale("kn_IN");
-			getLocation.mGeocoder = new Geocoder(this, mLocale);
+			//Locale mLocale = new Locale("kn_IN");
+			getLocation.mGeocoder = new Geocoder(this, Locale.ENGLISH);
 			getLocation.execute("");
 		} 
 
