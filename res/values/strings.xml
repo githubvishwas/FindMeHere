@@ -11,4 +11,5 @@
     <string name="Use_GPS_Satellites">Use GPS Provider</string>
     <string name="widget_label">Find Me Here</string>
     <string name="send_by">Send location by:</string>
+    <string name="widget_provider_name">Find me here!</string>
 </resources>

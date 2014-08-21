@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Locale;
 
 //import com.example.android.location.R;
-import com.google.android.gms.ads.*;
+
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesClient;
 import com.google.android.gms.location.LocationClient;
@@ -59,7 +59,7 @@ com.google.android.gms.location.LocationListener {
 	private Location mlocation = null;
 	private LocationClient mLocationClient = null;
 	private LocationRequest mLocationRequest;
-	private Geocoder anotherGeoCoder = null;
+	//private Geocoder anotherGeoCoder = null;
     // Define a request code to send to Google Play services. This code is returned in Activity.onActivityResult
     private final static int CONNECTION_FAILURE_RESOLUTION_REQUEST = 9000;
 	protected void onCreate(Bundle savedInstanceState) {
@@ -90,7 +90,7 @@ com.google.android.gms.location.LocationListener {
 	            .addTestDevice("00946b999b4be935")
 	            .build();
 	    adView1.loadAd(adRequest);
-	    anotherGeoCoder = new Geocoder(this, Locale.ENGLISH);
+	    //anotherGeoCoder = new Geocoder(this, Locale.ENGLISH);
 	    
 	}
 	@Override
@@ -435,7 +435,8 @@ com.google.android.gms.location.LocationListener {
 
 		GetLocation getLocation = new GetLocation();
 		if (getLocation != null) {
-			getLocation.mGeocoder = new Geocoder(this, Locale.ENGLISH);
+			Locale mLocale = new Locale("kn_IN");
+			getLocation.mGeocoder = new Geocoder(this, mLocale);
 			getLocation.execute("");
 		} 
 
