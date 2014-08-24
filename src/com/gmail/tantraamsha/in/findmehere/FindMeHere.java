@@ -1,11 +1,21 @@
 package com.gmail.tantraamsha.in.findmehere;
 import com.google.android.gms.ads.*;
+
+import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.StringWriter;
+import java.net.URL;
+import java.net.URLConnection;
 import java.util.List;
 import java.util.Locale;
 
-//import com.example.android.location.R;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
+//import com.example.android.location.R;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesClient;
 import com.google.android.gms.location.LocationClient;
@@ -36,6 +46,8 @@ import android.text.method.LinkMovementMethod;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -418,37 +430,100 @@ com.google.android.gms.location.LocationListener {
 	    // Begin loading your interstitial.
 	    interstitial.loadAd(adRequest);
 	}
-	public void findMeHere_cb(View view)  {
+	public void findLandMarks_cb(View view)  {
+		findMeHereCore(view,true);
+
+	}
+
+	public void findMeHereCore(View view, boolean findLandmarksFlag) {
 		//final boolean internetOn = haveNetworkConnection();
-		foundLoc = true;
-		final boolean gpsEnabled = mLocationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
-		final boolean wirelessnetworkEnabled = mLocationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
-		TextView tv =  (TextView) findViewById(R.id.txtLocation);
+				foundLoc = true;
+				final boolean gpsEnabled = mLocationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+				final boolean wirelessnetworkEnabled = mLocationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+				TextView tv =  (TextView) findViewById(R.id.txtLocation);
 
-		tv.setClickable(true);
-		tv.setMovementMethod(LinkMovementMethod.getInstance());
-		
-		if (!gpsEnabled &&  !wirelessnetworkEnabled) {
-			Toast.makeText(this, "No location service on!", Toast.LENGTH_SHORT).show();
-			return;
-		}
+				tv.setClickable(true);
+				tv.setMovementMethod(LinkMovementMethod.getInstance());
+				
+				if (!gpsEnabled &&  !wirelessnetworkEnabled) {
+					Toast.makeText(this, "No location service on!", Toast.LENGTH_SHORT).show();
+					return;
+				}
 
-		GetLocation getLocation = new GetLocation();
-		if (getLocation != null) {
-			//Locale mLocale = new Locale("kn_IN");
-			getLocation.mGeocoder = new Geocoder(this, Locale.ENGLISH);
-			getLocation.execute("");
-		} 
-
+				GetLocation getLocation = new GetLocation();
+				if (getLocation != null) {
+					//Locale mLocale = new Locale("kn_IN");
+					getLocation.mGeocoder = new Geocoder(this, Locale.ENGLISH);
+					getLocation.findNearestLocations = findLandmarksFlag;
+					getLocation.execute("");
+				} 
+	}
+	public void findMeHere_cb(View view)  {
+		findMeHereCore(view,false);
+	}
+	@Override
+	public void onActivityResult(int requestCode, int resultCode, Intent data) {
+	  super.onActivityResult(requestCode, resultCode, data);
+	  if (data != null) {
+		  String addText = data.getStringExtra("landmark");
+	      TextView tv =  (TextView) findViewById(R.id.txtLocation);
+	      tv.setText(addText);
+	  }
+	  AdRequest adRequest = null;
+	    if (mlocation != null) {
+	    	adRequest = new AdRequest.Builder()
+			.addTestDevice(AdRequest.DEVICE_ID_EMULATOR)
+	        .addTestDevice("00946b999b4be935")
+	        .setLocation(mlocation)
+	        .build();
+	    } else {
+	    	adRequest = new AdRequest.Builder()
+			.addTestDevice(AdRequest.DEVICE_ID_EMULATOR)
+	        .addTestDevice("00946b999b4be935")
+	        .build();
+	    }
+	
+	    // Begin loading your interstitial.
+	    interstitial.loadAd(adRequest);
 	}
 	private class GetLocation extends AsyncTask<String, Integer, String> {
 	
 		private Geocoder mGeocoder;
 		private String mText;
+		private double latitude;
+		private double longitude;
 		private ProgressDialog mProgressDialog;
+		private boolean findNearestLocations = false;
+		public String JSONString="";
+		protected String findNearestLandmarks() {
+			String client_id = "GYORJLABWWE1BZDUWOU3X3Y5UGBHHJQYSOQLTWKG5NGCN0OU";
+			String client_secret = "223X1LBKKD5FJP0WPZPIR4CBZVMROELKVMDCYIS05RVF1UYI";
+			String currentDateandTime = "20130815";
+
+			String url = "https://api.foursquare.com/v2/venues/search?client_id="+client_id+"&client_secret="+client_secret+"&v="+currentDateandTime+"&ll="+latitude+","+longitude;
+			try{
+
+		        URL urlend = new URL(url);
+		        URLConnection urlConnection = urlend.openConnection();
+		        InputStream in = (InputStream)urlend.openStream();
+		        BufferedReader streamReader = new BufferedReader(new InputStreamReader(in, "UTF-8")); 
+		        StringBuilder responseStrBuilder = new StringBuilder();
+
+		        String JSONReponse;
+		        while ((JSONReponse = streamReader.readLine()) != null)
+		            responseStrBuilder.append(JSONReponse);
+		        JSONString = responseStrBuilder.toString();
+
+		    } catch(Exception e){
+		        // In your production code handle any errors and catch the individual exceptions
+		        e.printStackTrace();
+		    }
+			publishProgress(100);
+			return "";
+			
+		}
 		
 		@Override
-
 		protected String doInBackground(String... arg0) {
 			mText = "";
 			publishProgress(50);
@@ -463,8 +538,13 @@ com.google.android.gms.location.LocationListener {
 				publishProgress(100);
 				return "";
 			}
-			double latitude = mlocation.getLatitude() ;
-			double longitude = mlocation.getLongitude() ;
+			latitude = mlocation.getLatitude() ;
+			longitude = mlocation.getLongitude() ;
+			double accuracy = -1.0;
+			if (mlocation.hasAccuracy()) {
+				accuracy = mlocation.getAccuracy();
+			}
+			
 			String googleMapURL = String.format(Locale.ENGLISH,"http://maps.google.com/maps?q=%f,%f&z=18",latitude,longitude);
 			Geocoder geocoder;
 			List<Address> addresses = null;
@@ -486,7 +566,15 @@ com.google.android.gms.location.LocationListener {
 				for (int i =0; i < address.getMaxAddressLineIndex(); i++)
 					sb.append(address.getAddressLine(i)).append("\n");
 				sb.append(address.getCountryName()).append("\n");
-				mText = String.format("Nearest Landmark:\n" + sb.toString() + "Google map location link \n" + googleMapURL );
+				if (accuracy == -1.0) {
+					mText = String.format("Nearest address:\n" + sb.toString() + "Google map location link \n" + googleMapURL );
+				} else {
+					mText = String.format("Nearest address ( Accuracy: " + accuracy + " m ):\n" + sb.toString() + "Google map location link \n" + googleMapURL );
+				}
+				
+				if (findNearestLocations) {
+					findNearestLandmarks();
+				}
 				publishProgress(100);				//tv.setText(String.format("Nearest Google Landmark Address: %s \n%s \n%s \nFind me on google map using the following link \n%s ", address, city, country,googleMapURL ));
 			}
 			// setting location to null, so that new location is considered next time
@@ -508,8 +596,15 @@ com.google.android.gms.location.LocationListener {
 	    @Override
 	    protected void onProgressUpdate(Integer... progress) {
 	        super.onProgressUpdate(progress);
+	        
+	    }
+	    @Override
+	    protected void onPostExecute(String str) {
+	        super.onPostExecute(str);
+	        mProgressDialog.dismiss();
 	        TextView tv =  (TextView) findViewById(R.id.txtLocation);
 	        tv.setText(mText);
+
 	        // Look up the AdView as a resource and load a request.
 		    adView1 = (AdView) findViewById(R.id.adView);
 		    AdRequest adRequest = new AdRequest.Builder()
@@ -517,11 +612,17 @@ com.google.android.gms.location.LocationListener {
 		            .addTestDevice("00946b999b4be935")
 		            .build();
 		    adView1.loadAd(adRequest);
-	    }
-	    @Override
-	    protected void onPostExecute(String str) {
-	        super.onPostExecute(str);
-	        mProgressDialog.dismiss();
+	        if (findNearestLocations) {
+	        	//Starting a new Intent
+		        Intent nextScreen = new Intent(getApplicationContext(), LandmarksList.class);
+
+		        //Sending data to another Activity
+		        nextScreen.putExtra("JSONString", JSONString);
+		        nextScreen.putExtra("latitude", latitude);
+		        nextScreen.putExtra("longitude", longitude);
+
+		        startActivityForResult(nextScreen, 0);
+	        }
 	    }
 	}
 	 /*

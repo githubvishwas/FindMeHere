@@ -12,4 +12,5 @@
     <string name="widget_label">Find Me Here</string>
     <string name="send_by">Send location by:</string>
     <string name="widget_provider_name">Find me here!</string>
+    <string name="find_landmarks">Find nearby landmarks</string>
 </resources>

@@ -68,21 +68,11 @@
 	    android:layout_height="wrap_content"
 	    android:layout_above="@+id/btnSendSMS"
 	    android:layout_alignLeft="@+id/txtLocation"
-	    android:autoLink="web"
 	    android:background="#FFFFFF"
+	    android:layout_marginTop="20dp"
 	    android:scrollbars="vertical"
 	    android:text="@string/send_by"
 	    android:textStyle="bold" />
-
-	<Button
-	    android:id="@+id/btnSendMail"
-	    android:layout_width="wrap_content"
-	    android:layout_height="wrap_content"
-	    android:layout_alignLeft="@+id/txtlabel"
-	    android:layout_below="@+id/txtLocation"
-	    android:layout_marginTop="36dp"
-	    android:onClick="sendMail"
-	    android:text="@string/send_location_by_gmail" />
 
 	<Button
 	    android:id="@+id/btnSendWhatsApp"
@@ -103,6 +93,26 @@
 	    android:layout_toRightOf="@+id/btnSendMail"
 	    android:onClick="sendSMS"
 	    android:text="@string/send_location_by_sms" />
+
+	<Button
+	    android:id="@+id/btnSendMail"
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"
+	    android:layout_alignLeft="@+id/txtlabel"
+	    android:layout_below="@+id/btnFindLandmarks"
+	    android:layout_marginTop="26dp"
+	    android:onClick="sendMail"
+	    android:text="@string/send_location_by_gmail" />
+
+	<Button
+	    android:id="@+id/btnFindLandmarks"
+	    android:layout_width="250dip"
+	    android:layout_height="wrap_content"
+	    android:layout_alignRight="@+id/btnSendWhatsApp"
+	    android:layout_below="@+id/txtLocation"
+	    android:layout_marginTop="10dp"
+	    android:onClick="findLandMarks_cb"
+	    android:text="@string/find_landmarks" />
 
 </RelativeLayout>
 		

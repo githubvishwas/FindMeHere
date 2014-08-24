@@ -17,7 +17,7 @@ import android.location.Location;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.RemoteViews;
-import android.widget.Toast;
+
  
 public class FindMeHereWidgetProvider extends AppWidgetProvider implements
 GooglePlayServicesClient.ConnectionCallbacks,
