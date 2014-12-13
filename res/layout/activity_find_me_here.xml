@@ -20,7 +20,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="34dp"
+        android:layout_marginTop="10dp"
         android:onClick="findMeHere_cb"
         android:text="@string/find_me_here" />
 
@@ -39,7 +39,7 @@
         android:layout_height="wrap_content"
         android:layout_below="@+id/btnFindMeHere"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="15dp"
         android:autoLink="web"
         android:background="#FFFFFF"
         android:scrollbars="vertical"
@@ -53,8 +53,8 @@
 	    android:layout_height="wrap_content"
 	    android:layout_alignParentLeft="true"
 	    android:layout_alignParentRight="true"
-	    android:layout_below="@+id/btnSendWhatsApp"
-	    android:layout_marginTop="14dp"
+	    android:layout_below="@+id/btnShareLocation"
+	    android:layout_marginTop="10dp"
 	    ads:adSize="BANNER"
 	    ads:adUnitId="ca-app-pub-9439183503098916/4269004781"
 	    android:minHeight="50dip"
@@ -113,6 +113,16 @@
 	    android:layout_marginTop="10dp"
 	    android:onClick="findLandMarks_cb"
 	    android:text="@string/find_landmarks" />
+
+	<Button
+	    android:id="@+id/btnShareLocation"
+	    android:layout_width="250dip"
+	    android:layout_height="wrap_content"
+	    android:layout_alignRight="@+id/btnSendWhatsApp"
+	    android:layout_below="@+id/btnSendWhatsApp"
+	    android:layout_marginTop="10dp"
+	    android:onClick="shareVia_cb"
+	    android:text="@string/share_Location" />
 
 </RelativeLayout>
 		

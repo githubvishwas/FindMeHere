@@ -2,18 +2,14 @@ package com.gmail.tantraamsha.in.findmehere;
 import com.google.android.gms.ads.*;
 
 import java.io.BufferedReader;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.StringWriter;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.List;
 import java.util.Locale;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
 
 //import com.example.android.location.R;
 import com.google.android.gms.common.ConnectionResult;
@@ -37,6 +33,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentSender;
+import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -46,9 +43,6 @@ import android.text.method.LinkMovementMethod;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.ArrayAdapter;
-import android.widget.ListView;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 import com.gmail.tantraamsha.in.findmehere.R;
@@ -63,6 +57,11 @@ com.google.android.gms.location.LocationListener {
 	public static final int MENU_LOCATION = Menu.FIRST;
 	public static final int MENU_INTERNET = Menu.FIRST + 1;
 	public static final int MENU_ABOUT = Menu.FIRST + 2;
+	public static final int MENU_SHARE = Menu.FIRST + 3;
+	public static final int MENU_RATE = Menu.FIRST + 4;
+    private final static int DAYS_UNTIL_PROMPT = 1;//Min number of days
+    private final static int LAUNCHES_UNTIL_PROMPT = 1;//Min number of launches
+    private final static String APP_PNAME = "com.gmail.tantraamsha.in.findmehere";// Package Name
 	private LocationManager mLocationManager;
 	private Boolean foundLoc = false; 
 
@@ -103,8 +102,36 @@ com.google.android.gms.location.LocationListener {
 	            .build();
 	    adView1.loadAd(adRequest);
 	    //anotherGeoCoder = new Geocoder(this, Locale.ENGLISH);
-	    
+	    AppRater.app_launched(this);
 	}
+	public static boolean app_launched(Context mContext) {
+        SharedPreferences prefs = mContext.getSharedPreferences("findmehere", 0);
+  
+        SharedPreferences.Editor editor = prefs.edit();
+
+        // Increment launch counter
+        long launch_count = prefs.getLong("launch_count", 0) + 1;
+        editor.putLong("launch_count", launch_count);
+
+        // Get date of first launch
+        Long date_firstLaunch = prefs.getLong("date_firstlaunch", 0);
+        if (date_firstLaunch == 0) {
+            date_firstLaunch = System.currentTimeMillis();
+            editor.putLong("date_firstlaunch", date_firstLaunch);
+        }
+
+        // Wait at least n days before opening
+        if (launch_count >= LAUNCHES_UNTIL_PROMPT) {
+            if (System.currentTimeMillis() >= date_firstLaunch + 
+                    (DAYS_UNTIL_PROMPT * 24 * 60 * 60 * 1000)) {
+            	editor.commit();
+            	return true;
+            }
+        }
+
+        editor.commit();
+        return false;
+    }   
 	@Override
 	  public void onResume() {
 	    super.onResume();
@@ -146,6 +173,8 @@ com.google.android.gms.location.LocationListener {
 		// There is some issue in bringing up mobile network options now
 		menu.add(Menu.NONE, MENU_INTERNET, Menu.NONE, "Internet");
 		menu.add(Menu.NONE, MENU_ABOUT, Menu.NONE, "About");
+		menu.add(Menu.NONE, MENU_SHARE, Menu.NONE, "Share");
+		menu.add(Menu.NONE, MENU_RATE, Menu.NONE, "Rate/Update");
 		return true;
 	}
 	// Invoke displayInterstitial() when you are ready to display an interstitial.
@@ -153,6 +182,15 @@ com.google.android.gms.location.LocationListener {
 	    if (interstitial.isLoaded()) {
 	      interstitial.show();
 	    }
+	  }
+	  public void shareVia_cb(View view) {
+		  TextView tv =  (TextView) findViewById(R.id.txtLocation);
+		    String text = String.format("%s\n\nUsing \"FindMind\" App from Play Store at goo.gl/Atl0kR",tv.getText());
+		  Intent i=new Intent(android.content.Intent.ACTION_SEND);
+	      	i.setType("text/plain");
+	      	i.putExtra(android.content.Intent.EXTRA_SUBJECT,"Location using FindMind");
+	      	i.putExtra(android.content.Intent.EXTRA_TEXT, text);
+	      	startActivity(Intent.createChooser(i,"Share via"));
 	  }
 	@Override
     public boolean onOptionsItemSelected(MenuItem item)
@@ -164,6 +202,16 @@ com.google.android.gms.location.LocationListener {
             return true;
             case MENU_INTERNET:
             	startActivityForResult(new Intent(android.provider.Settings.ACTION_SETTINGS ), 0);
+            	return true;
+            case MENU_SHARE:
+            	Intent i=new Intent(android.content.Intent.ACTION_SEND);
+            	i.setType("text/plain");
+            	i.putExtra(android.content.Intent.EXTRA_SUBJECT,"Found this amazing App, FindMind");
+            	i.putExtra(android.content.Intent.EXTRA_TEXT, "Hi, I Found this amazing App, FindMind.\nIts available in Play Store at goo.gl/Atl0kR.\nTry it out right now!");
+            	startActivity(Intent.createChooser(i,"Share via"));
+            	return true;
+            case MENU_RATE:
+            	startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + APP_PNAME)));
             	return true;
             case MENU_ABOUT:
 				PackageInfo pInfo = null;
@@ -180,7 +228,7 @@ com.google.android.gms.location.LocationListener {
             	alertDialog.setTitle("About");
             	
             	// Setting Dialog Message
-            	String aboutDetail = String.format("Find Me Here \n%s", version);
+            	String aboutDetail = String.format("FindMind %s\nLandmarks database from FourSquare", version);
             	alertDialog.setMessage(aboutDetail);
 	        
             	// Setting OK Button
@@ -350,7 +398,7 @@ com.google.android.gms.location.LocationListener {
 		Intent waIntent = new Intent(Intent.ACTION_SEND);
 	    waIntent.setType("text/plain");
 	    TextView tv =  (TextView) findViewById(R.id.txtLocation);
-	    String text = String.format("%s\n\nFound location using \"Find Me Here\" App from Play Store at https://play.google.com/store/apps/details?id=com.gmail.tantraamsha.in.findmehere",tv.getText());
+	    String text = String.format("%s\n\nUsing \"FindMind\" App from Play Store at goo.gl/Atl0kR",tv.getText());
 	    waIntent.setPackage("com.whatsapp");
 	    if (waIntent != null) {
 	        waIntent.putExtra(Intent.EXTRA_TEXT, text);//
@@ -370,7 +418,7 @@ com.google.android.gms.location.LocationListener {
 	        }
 
 		    // Begin loading your interstitial.
-		    interstitial.loadAd(adRequest);
+		    //interstitial.loadAd(adRequest);
 	    } 
 	}
 	public void sendMail(View view) {
@@ -379,9 +427,9 @@ com.google.android.gms.location.LocationListener {
 			return;
 		}
 		Intent intent=new Intent(Intent.ACTION_SEND);
-		intent.putExtra(Intent.EXTRA_SUBJECT,"My location from Find Me Here App");
+		intent.putExtra(Intent.EXTRA_SUBJECT,"My location from FindMind App");
 		TextView tv =  (TextView) findViewById(R.id.txtLocation);
-		intent.putExtra(Intent.EXTRA_TEXT,String.format("%s\n\nFound location using \"Find Me Here\" App from Play Store at https://play.google.com/store/apps/details?id=com.gmail.tantraamsha.in.findmehere",tv.getText()));
+		intent.putExtra(Intent.EXTRA_TEXT,String.format("%s\n\nUsing \"FindMind\" App from Play Store at goo.gl/Atl0kR",tv.getText()));
 		// this will ensure that directly g mail opens and other options dont show up - vishwas
 		intent.setType("message/rfc822");
 		startActivity(Intent.createChooser(intent, "Send mail")); 
@@ -400,7 +448,7 @@ com.google.android.gms.location.LocationListener {
         }
 
 	    // Begin loading your interstitial.
-	    interstitial.loadAd(adRequest);
+	    //interstitial.loadAd(adRequest);
 	}
 	public void sendSMS(View view) {
 		if (!foundLoc) {
@@ -410,7 +458,7 @@ com.google.android.gms.location.LocationListener {
 		Uri smsUri = Uri.parse("tel:123456");
 		Intent intent = new Intent(Intent.ACTION_VIEW, smsUri);
 		TextView tv =  (TextView) findViewById(R.id.txtLocation);
-		intent.putExtra("sms_body", String.format("%s\n\nFound location using \"Find Me Here\" App from Play Store at https://play.google.com/store/apps/details?id=com.gmail.tantraamsha.in.findmehere",tv.getText()));
+		intent.putExtra("sms_body", String.format("%s\n\nUsing \"FindMind\" App from Play Store at goo.gl/Atl0kR",tv.getText()));
 		intent.setType("vnd.android-dir/mms-sms"); 
 		startActivity(intent);
 		AdRequest adRequest = null;
@@ -428,7 +476,7 @@ com.google.android.gms.location.LocationListener {
         }
 
 	    // Begin loading your interstitial.
-	    interstitial.loadAd(adRequest);
+	    //interstitial.loadAd(adRequest);
 	}
 	public void findLandMarks_cb(View view)  {
 		findMeHereCore(view,true);
@@ -484,7 +532,10 @@ com.google.android.gms.location.LocationListener {
 	    }
 	
 	    // Begin loading your interstitial.
-	    interstitial.loadAd(adRequest);
+	    if ( app_launched(this)) {
+	    	interstitial.loadAd(adRequest);
+	    }
+	    
 	}
 	private class GetLocation extends AsyncTask<String, Integer, String> {
 	
@@ -536,10 +587,17 @@ com.google.android.gms.location.LocationListener {
 			if (mlocation == null) {
 				mText = "Could not get location, please check GPS/Internet connection !\nThere may be a temporary loss of connection, please try again" ;
 				publishProgress(100);
+				findNearestLocations=false;
 				return "";
 			}
 			latitude = mlocation.getLatitude() ;
 			longitude = mlocation.getLongitude() ;
+			//testing values - US
+			//latitude = 35.178281;
+			//longitude = -80.892656;
+			//testing values - Bangalore
+			//latitude = 13.034005;
+			//longitude = 77.679696;
 			double accuracy = -1.0;
 			if (mlocation.hasAccuracy()) {
 				accuracy = mlocation.getAccuracy();
@@ -555,6 +613,7 @@ com.google.android.gms.location.LocationListener {
 	        } catch (IOException e) {
 	        	//tv.setText(String.format("Could not resolve location. Providing last known location \nLongitude: %s\nLatitude: %s\nFind me on google map using the following link \n%s \nSorry, check internet/GPS connection ! \n There may be a temporary loss of connection, please try again",longitude,latitude,googleMapURL));
 	        	mText = String.format("Last known location \nLongitude: %s\nLatitude: %s\nGoogle map location link \n%s \nSorry, check internet/GPS connection ! \nThere may be a temporary loss of connection, please try again",longitude,latitude,googleMapURL);
+	        	findNearestLocations=false;
 	        	publishProgress(100);
 	            e.printStackTrace();
 	        }
@@ -569,7 +628,7 @@ com.google.android.gms.location.LocationListener {
 				if (accuracy == -1.0) {
 					mText = String.format("Nearest address:\n" + sb.toString() + "Google map location link \n" + googleMapURL );
 				} else {
-					mText = String.format("Nearest address ( Accuracy: " + accuracy + " m ):\n" + sb.toString() + "Google map location link \n" + googleMapURL );
+					mText = String.format("Nearest address (Accuracy: " + accuracy + " m):\n" + sb.toString() + "Google map location link \n" + googleMapURL );
 				}
 				
 				if (findNearestLocations) {
@@ -687,36 +746,6 @@ com.google.android.gms.location.LocationListener {
 	public void onLocationChanged(Location loc) {
 		// TODO Auto-generated method stub
 		mlocation = loc;
-		//double latitude = mlocation.getLatitude() ;
-		//double longitude = mlocation.getLongitude() ;
-		//String lText = "";
-		//String googleMapURL = String.format(Locale.ENGLISH,"http://maps.google.com/maps?q=%f,%f&z=18",latitude,longitude);
-		//Geocoder geocoder;
-		//List<Address> addresses = null;
-		//geocoder = anotherGeoCoder ;
-		
-		//try {
-		//	addresses = geocoder.getFromLocation(latitude, longitude, 1);
-        //} catch (IOException e) {
-        	////tv.setText(String.format("Could not resolve location. Providing last known location \nLongitude: %s\nLatitude: %s\nFind me on google map using the following link \n%s \nSorry, check internet/GPS connection ! \n There may be a temporary loss of connection, please try again",longitude,latitude,googleMapURL));
-        	//lText = String.format("Last known location \nLongitude: %s\nLatitude: %s\nGoogle map location link \n%s \nSorry, check internet/GPS connection ! \nThere may be a temporary loss of connection, please try again",longitude,latitude,googleMapURL);
-        	
-        //}
-		//StringBuilder sb = new StringBuilder();
-		//if (addresses == null) {
-		//	lText = "mull";
-		//	
-			////tv.setText(String.format("Latitude: %s \nLongitude: %s \nSorry, Could not resolve address !",Double.toString(latitude),Double.toString(longitude)));
-		//} else {
-			//Address address = addresses.get(0);
-			//for (int i =0; i < address.getMaxAddressLineIndex(); i++)
-			//	sb.append(address.getAddressLine(i)).append("\n");
-			//sb.append(address.getCountryName()).append("\n");
-			//lText = String.format("Nearest Landmark:\n" + sb.toString() + "Google map location link \n" + googleMapURL );
-			
-							////tv.setText(String.format("Nearest Google Landmark Address: %s \n%s \n%s \nFind me on google map using the following link \n%s ", address, city, country,googleMapURL ));
-		//}
-		//Toast.makeText(this,lText,Toast.LENGTH_SHORT).show();
 		
 	}
 

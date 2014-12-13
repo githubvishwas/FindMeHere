@@ -53,7 +53,17 @@ import android.widget.Toast;
 		        {
 		            JSONObject jObj= arrayVenues.getJSONObject(i);
 		            JSONObject location = jObj.getJSONObject("location");
-		            names[i]= jObj.getString("name") + " (Dist: " + location.getString("distance") +" m)";
+		            JSONArray categories= jObj.getJSONArray("categories");
+		            String catName = "";
+		            if (categories.length() > 0) {
+		            	JSONObject categoryNameObj = categories.getJSONObject(0);
+			            catName = categoryNameObj.getString("name");
+			            if (catName.contains("Other Great Outdoors")) {
+			            	catName = "Outdoors";
+			            }
+		            }
+		            
+		            names[i]= jObj.getString("name") + " (Dist: " + location.getString("distance") +" m)\n" + catName;
 		            venuesId[i]= jObj.getString("id");
 		        }
 			} catch (JSONException e) {
@@ -64,7 +74,11 @@ import android.widget.Toast;
 			final String[] names1= new String[maxRes];
 			for (int i=0;i< maxRes; i++)
 			{
-				names1[i] = names[i];
+				if (names[i] != null) {
+					names1[i] = names[i];
+				} else {
+					names1[i] = "";
+				}
 			}
 	        
             ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,
@@ -93,6 +107,7 @@ import android.widget.Toast;
 	    		        
 	    		        double lat = location.getDouble("lat");
 	    		        double lng = location.getDouble("lng");
+
 	    		        address= jObj.getString("name") + " (Dist: " + location.getString("distance") +" m)\n";
 	    		        if (location.has("address")) {
 	    		        	address = address + location.optString("address","No address available!") + "\n";
@@ -107,9 +122,11 @@ import android.widget.Toast;
 	    		        	address = address + location.optString("postalCode","") + "\n";
 	    		        }
 	    		        if (jObj.has("contact")) {
-	    		        	if (jObj.getString("contact") != "{}" || jObj.getString("contact") != "") {
-	    		        		address = address + jObj.optString("contact"," ") + "\n";
+	    		        	JSONObject jObj1 = jObj.getJSONObject("contact");
+	    		        	if (jObj1.has("formattedPhone")) {
+	    		        		address = address + "Ph:" +jObj1.optString("formattedPhone"," ") + "\n";
 	    		        	}
+	   
 	    		        }
 	    		        
 	    		        Intent resultIntent = new Intent();
